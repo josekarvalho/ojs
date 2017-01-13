@@ -1,7 +1,8 @@
 {**
  * templates/gateway/lockss.tpl
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * LOCKSS Publisher Manifest gateway page.
@@ -29,7 +30,7 @@
 
 <ul>
 {iterate from=issues item=issue}
-	<li><a href="{url page="issue" op="view" path=$issue->getBestIssueId($journal)}">{$issue->getIssueIdentification()|strip_unsafe_html|nl2br}</a></li>
+	<li><a href="{url page="issue" op="view" path=$issue->getBestIssueId()}">{$issue->getIssueIdentification()|strip_unsafe_html|nl2br}</a></li>
 {/iterate}
 </ul>
 
@@ -111,7 +112,7 @@
 <br /><br />
 
 <div style="text-align: center; width: 250px; margin: 0 auto">
-	<a href="http://lockss.org/"><img src="{$baseUrl}/templates/images/lockss.gif" style="border: 0;" alt="LOCKSS" /></a>
+	<a href="http://www.lockss.org/"><img src="{$baseUrl}/templates/images/lockss.gif" style="border: 0;" alt="LOCKSS" /></a>
 	<br />
 	LOCKSS system has permission to collect, preserve, and serve this Archival Unit.
 		

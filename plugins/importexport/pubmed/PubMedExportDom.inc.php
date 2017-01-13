@@ -3,7 +3,8 @@
 /**
  * @file plugins/importexport/pubmed/PubMedExportDom.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class PubMedExportDom
@@ -67,8 +68,8 @@ class PubMedExportDom {
 
 		if ($ISSN != '') XMLCustomWriter::createChildWithText($doc, $journalNode, 'Issn', $ISSN);
 
-		XMLCustomWriter::createChildWithText($doc, $journalNode, 'Volume', $issue->getVolume());
-		XMLCustomWriter::createChildWithText($doc, $journalNode, 'Issue', $issue->getNumber(), false);
+		if ($issue->getShowVolume()) XMLCustomWriter::createChildWithText($doc, $journalNode, 'Volume', $issue->getVolume());
+		if ($issue->getShowNumber()) XMLCustomWriter::createChildWithText($doc, $journalNode, 'Issue', $issue->getNumber(), false);
 
 		$datePublished = $article->getDatePublished();
 		if (!$datePublished) $datePublished = $issue->getDatePublished();
@@ -110,12 +111,12 @@ class PubMedExportDom {
 			XMLCustomWriter::createChildWithText($doc, $root, 'LastPage', $matches[1]);
 		} else {
 			// we need to insert something, so use the best ID possible
-			XMLCustomWriter::createChildWithText($doc, $root, 'FirstPage', $article->getBestArticleId($journal));
-			XMLCustomWriter::createChildWithText($doc, $root, 'LastPage', $article->getBestArticleId($journal));
+			XMLCustomWriter::createChildWithText($doc, $root, 'FirstPage', $article->getBestArticleId());
+			XMLCustomWriter::createChildWithText($doc, $root, 'LastPage', $article->getBestArticleId());
 		}
 
 		/* --- DOI --- */
-		if ($doi = $article->getPubId('doi')) {
+		if ($doi = $article->getStoredPubId('doi')) {
 			$doiNode =& XMLCustomWriter::createChildWithText($doc, $root, 'ELocationID', $doi, false);
 			XMLCustomWriter::setAttribute($doiNode, 'EIdType', 'doi');
 		}
@@ -138,11 +139,11 @@ class PubMedExportDom {
 		// how this is handled is journal-specific, and will require either
 		// configuration in the plugin, or an update to the core code.
 		// this is also related to DOI-handling within OJS
-		if ($article->getPubId('publisher-id')) {
+		if ($article->getStoredPubId('publisher-id')) {
 			$articleIdListNode =& XMLCustomWriter::createElement($doc, 'ArticleIdList');
 			XMLCustomWriter::appendChild($root, $articleIdListNode);
 
-			$articleIdNode =& XMLCustomWriter::createChildWithText($doc, $articleIdListNode, 'ArticleId', $article->getPubId('publisher-id'));
+			$articleIdNode =& XMLCustomWriter::createChildWithText($doc, $articleIdListNode, 'ArticleId', $article->getStoredPubId('publisher-id'));
 			XMLCustomWriter::setAttribute($articleIdNode, 'IdType', 'pii');
 		}
 
@@ -168,13 +169,13 @@ class PubMedExportDom {
 
 		// article revised by publisher or author
 		// check if there is a revised version; if so, generate a revised tag
-		$revisedFileID = $article->getRevisedFileId();
-		if (!empty($revisedFileID)) {
-			$articleFileDao = DAORegistry::getDAO('ArticleFileDAO');
-			$articleFile =& $articleFileDao->getArticleFile($revisedFileID);
+		$revisedFileId = $article->getRevisedFileId();
+		if (!empty($revisedFileId)) {
+			$submissionFileDao = DAORegistry::getDAO('SubmissionFileDAO');
+			$submissionFile = $submissionFileDao->getLatestRevision($revisedFileId);
 
-			if ($articleFile) {
-				$revisedNode =& PubMedExportDom::generatePubDateDom($doc, $articleFile->getDateModified(), 'revised');
+			if ($submissionFile) {
+				$revisedNode =& PubMedExportDom::generatePubDateDom($doc, $submissionFile->getDateModified(), 'revised');
 				XMLCustomWriter::appendChild($historyNode, $revisedNode);
 			}
 		}

@@ -3,6 +3,7 @@
 /**
  * @file plugins/paymethod/paypal/PayPalPlugin.inc.php
  *
+ * Copyright (c) 2014-2016 Simon Fraser University Library
  * Copyright (c) 2006-2009 Gunther Eysenbach, Juan Pablo Alperin, MJ Suhonos
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
@@ -18,8 +19,8 @@ class PayPalPlugin extends PaymethodPlugin {
 	/**
 	 * Constructor
 	 */
-	function PayPalPlugin() {
-		parent::PaymethodPlugin();
+	function __construct() {
+		parent::__construct();
 	}
 
 	/**
@@ -114,7 +115,7 @@ class PayPalPlugin extends PaymethodPlugin {
 	 * @param $queuedPayment QueuedPayment
 	 * @param $request PKPRequest
 	 */
-	function displayPaymentForm($queuedPaymentId, &$queuedPayment, $request) {
+	function displayPaymentForm($queuedPaymentId, $queuedPayment, $request) {
 		if (!$this->isConfigured()) return false;
 		AppLocale::requireComponents(LOCALE_COMPONENT_APP_COMMON);
 		$journal = $request->getJournal();
@@ -130,7 +131,7 @@ class PayPalPlugin extends PaymethodPlugin {
 			'no_note' => 1,
 			'no_shipping' => 1,
 			'currency_code' => $queuedPayment->getCurrencyCode(),
-			'lc' => String::substr(AppLocale::getLocale(), 3),
+			'lc' => PKPString::substr(AppLocale::getLocale(), 3),
 			'custom' => $queuedPaymentId,
 			'notify_url' => $request->url(null, 'payment', 'plugin', array($this->getName(), 'ipn')),
 			'return' => $queuedPayment->getRequestUrl(),
@@ -188,7 +189,7 @@ class PayPalPlugin extends PaymethodPlugin {
 				curl_setopt($ch, CURLOPT_URL, $this->getSetting($journal->getId(), 'paypalurl'));
 				curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 				curl_setopt($ch, CURLOPT_POST, 1);
-				curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded', 'Content-Length: ' . strlen($req)));
+				curl_setopt($ch, CURLOPT_HTTPHEADER, array('User-Agent: PKP PayPal Service', 'Content-Type: application/x-www-form-urlencoded', 'Content-Length: ' . strlen($req)));
 				curl_setopt($ch, CURLOPT_POSTFIELDS, $req);
 				$ret = curl_exec ($ch);
 				$curlError = curl_error($ch);
@@ -214,8 +215,8 @@ class PayPalPlugin extends PaymethodPlugin {
 							$payPalDao->insertTransaction(
 								$transactionId,
 								$request->getUserVar('txn_type'),
-								String::strtolower($request->getUserVar('payer_email')),
-								String::strtolower($request->getUserVar('receiver_email')),
+								PKPString::strtolower($request->getUserVar('payer_email')),
+								PKPString::strtolower($request->getUserVar('receiver_email')),
 								$request->getUserVar('item_number'),
 								$request->getUserVar('payment_date'),
 								$request->getUserVar('payer_id'),
@@ -242,10 +243,16 @@ class PayPalPlugin extends PaymethodPlugin {
 
 							//NB: if/when paypal subscriptions are enabled, these checks will have to be adjusted
 							// because subscription prices may change over time
+							$queuedAmount = $queuedPayment->getAmount();
+							$grantedAmount = $request->getUserVar('mc_gross');
+							$queuedCurrency = $queuedPayment->getCurrencyCode();
+							$grantedCurrency = $request->getUserVar('mc_currency');
+							$grantedEmail = PKPString::strtolower($request->getUserVar('receiver_email'));
+							$queuedEmail = PKPString::strtolower($this->getSetting($journal->getId(), 'selleraccount'));
 							if (
-								(($queuedAmount = $queuedPayment->getAmount()) != ($grantedAmount = $request->getUserVar('mc_gross')) && $queuedAmount > 0) ||
-								($queuedCurrency = $queuedPayment->getCurrencyCode()) != ($grantedCurrency = $request->getUserVar('mc_currency')) ||
-								($grantedEmail = String::strtolower($request->getUserVar('receiver_email'))) != ($queuedEmail = String::strtolower($this->getSetting($journal->getId(), 'selleraccount')))
+								($queuedAmount != $grantedAmount && $queuedAmount > 0) ||
+								$queuedCurrency != $grantedCurrency ||
+								$grantedEmail != $queuedEmail
 							) {
 								// The integrity checks for the transaction failed. Complain.
 								$mail->assignParams(array(
@@ -309,8 +316,6 @@ class PayPalPlugin extends PaymethodPlugin {
 					$mail->send();
 					exit();
 				}
-
-				break;
 			case 'cancel':
 				Handler::setupTemplate();
 				$templateMgr->assign(array(
@@ -320,9 +325,8 @@ class PayPalPlugin extends PaymethodPlugin {
 					'backLink' => $request->getUserVar('ojsReturnUrl'),
 					'backLinkLabel' => 'common.continue'
 				));
-				$templateMgr->display('common/message.tpl');
+				$templateMgr->display('frontend/pages/message.tpl');
 				exit();
-				break;
 		}
 		parent::handle($args, $request); // Don't know what to do with it
 	}

@@ -4,7 +4,8 @@
 /**
  * @file js/controllers/tab/issueEntry/IssueEntryTabHandler.js
  *
- * Copyright (c) 2000-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2000-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class IssueEntryTabHandler
@@ -123,12 +124,6 @@
 				regexp = /galley(\d+)/,
 				i, j, id, match, url, totalWidth = 0;
 
-		// Undo the scrollable tabs DOM changes so we can handle DOM manipulation
-		// in the normal mannner.
-		$element.unwrap();
-		$element.prev('div').remove();
-		$element.find('li').first().unwrap().unwrap();
-
 		for (j = 0; j < currentTabs.length; j++) {
 			id = currentTabs[j].getAttribute('id');
 			match = regexp.exec(id);
@@ -165,9 +160,6 @@
 						html(jsonData.galleys[i]);
 			}
 		}
-
-		// make the tabs scrollable again, if necessary.
-		$element.tabs().scrollabletab();
 	};
 
 
@@ -208,9 +200,9 @@
 				$gridRow = gridHandler.getParentRow($(sourceElement)),
 				galleyId = gridHandler.getRowDataId($gridRow);
 
-		this.getHtmlElement().tabs('select',
-				/** @type {string} */ (this.getTabPositionByGalleyId_(galleyId,
-						this.getHtmlElement())));
+		this.getHtmlElement().tabs({
+			active: /** @type {string} */ (this.getTabPositionByGalleyId_(
+					galleyId, this.getHtmlElement()))});
 	};
 
 
@@ -233,28 +225,6 @@
 		} else {
 			return null;
 		}
-	};
-
-
-	/**
-	 * Callback that overrides TabHandler's tabReloadRequested method
-	 * in order to deal with scrolling tabs.
-	 *
-	 * @param {HTMLElement} divElement The parent DIV element
-	 *  which contains the tabs.
-	 * @param {Event} event The triggered event (tabsReloadRequested).
-	 * @param {{tabsUrl: string}} jsonContent The tabs ui data.
-	 */
-	$.pkp.controllers.tab.issueEntry.IssueEntryTabHandler.prototype.
-			tabsReloadRequested = function(divElement, event, jsonContent) {
-
-		var $element = this.getHtmlElement();
-		$.get(jsonContent.tabsUrl, function(data) {
-			var jsonData = $.parseJSON(data);
-			$element.unwrap();
-			$element.prev('div').remove();
-			$element.replaceWith(jsonData.content);
-		});
 	};
 /** @param {jQuery} $ jQuery closure. */
 }(jQuery));

@@ -3,7 +3,8 @@
 /**
  * @file pages/user/UserHandler.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class UserHandler
@@ -18,8 +19,8 @@ class UserHandler extends PKPUserHandler {
 	/**
 	 * Constructor
 	 */
-	function UserHandler() {
-		parent::PKPUserHandler();
+	function __construct() {
+		parent::__construct();
 	}
 
 	/**
@@ -56,10 +57,12 @@ class UserHandler extends PKPUserHandler {
 		$this->setupTemplate($request);
 		$templateMgr = TemplateManager::getManager($request);
 
-		$templateMgr->assign('journalTitle', $journal->getLocalizedName());
-		$templateMgr->assign('journalPath', $journal->getPath());
-		$templateMgr->assign('acceptGiftSubscriptionPayments', $acceptGiftSubscriptionPayments);
-		$templateMgr->assign('giftSubscriptions', $giftSubscriptions);
+		$templateMgr->assign(array(
+			'journalTitle' => $journal->getLocalizedName(),
+			'journalPath' => $journal->getPath(),
+			'acceptGiftSubscriptionPayments' => $acceptGiftSubscriptionPayments,
+			'giftSubscriptions' => $giftSubscriptions,
+		));
 		$templateMgr->display('user/gifts.tpl');
 
 	}
@@ -150,23 +153,25 @@ class UserHandler extends PKPUserHandler {
 
 		$user = $request->getUser();
 		$userId = $user->getId();
+		$templateMgr = TemplateManager::getManager($request);
 
 		// Subscriptions contact and additional information
 		$subscriptionName = $journal->getSetting('subscriptionName');
 		$subscriptionEmail = $journal->getSetting('subscriptionEmail');
 		$subscriptionPhone = $journal->getSetting('subscriptionPhone');
-		$subscriptionFax = $journal->getSetting('subscriptionFax');
 		$subscriptionMailingAddress = $journal->getSetting('subscriptionMailingAddress');
 		$subscriptionAdditionalInformation = $journal->getLocalizedSetting('subscriptionAdditionalInformation');
 		// Get subscriptions and options for current journal
 		if ($individualSubscriptionTypesExist) {
 			$subscriptionDao = DAORegistry::getDAO('IndividualSubscriptionDAO');
 			$userIndividualSubscription = $subscriptionDao->getSubscriptionByUserForJournal($userId, $journalId);
+			$templateMgr->assign('userIndividualSubscription', $userIndividualSubscription);
 		}
 
 		if ($institutionalSubscriptionTypesExist) {
 			$subscriptionDao = DAORegistry::getDAO('InstitutionalSubscriptionDAO');
 			$userInstitutionalSubscriptions = $subscriptionDao->getSubscriptionsByUserForJournal($userId, $journalId);
+			$templateMgr->assign('userInstitutionalSubscriptions', $userInstitutionalSubscriptions);
 		}
 
 		import('classes.payment.ojs.OJSPaymentManager');
@@ -174,21 +179,19 @@ class UserHandler extends PKPUserHandler {
 		$acceptSubscriptionPayments = $paymentManager->acceptSubscriptionPayments();
 
 		$this->setupTemplate($request);
-		$templateMgr = TemplateManager::getManager($request);
 
-		$templateMgr->assign('subscriptionName', $subscriptionName);
-		$templateMgr->assign('subscriptionEmail', $subscriptionEmail);
-		$templateMgr->assign('subscriptionPhone', $subscriptionPhone);
-		$templateMgr->assign('subscriptionFax', $subscriptionFax);
-		$templateMgr->assign('subscriptionMailingAddress', $subscriptionMailingAddress);
-		$templateMgr->assign('subscriptionAdditionalInformation', $subscriptionAdditionalInformation);
-		$templateMgr->assign('journalTitle', $journal->getLocalizedName());
-		$templateMgr->assign('journalPath', $journal->getPath());
-		$templateMgr->assign('acceptSubscriptionPayments', $acceptSubscriptionPayments);
-		$templateMgr->assign('individualSubscriptionTypesExist', $individualSubscriptionTypesExist);
-		$templateMgr->assign('institutionalSubscriptionTypesExist', $institutionalSubscriptionTypesExist);
-		$templateMgr->assign('userIndividualSubscription', $userIndividualSubscription);
-		$templateMgr->assign('userInstitutionalSubscriptions', $userInstitutionalSubscriptions);
+		$templateMgr->assign(array(
+			'subscriptionName' => $subscriptionName,
+			'subscriptionEmail' => $subscriptionEmail,
+			'subscriptionPhone' => $subscriptionPhone,
+			'subscriptionMailingAddress' => $subscriptionMailingAddress,
+			'subscriptionAdditionalInformation' => $subscriptionAdditionalInformation,
+			'journalTitle' => $journal->getLocalizedName(),
+			'journalPath' => $journal->getPath(),
+			'acceptSubscriptionPayments' => $acceptSubscriptionPayments,
+			'individualSubscriptionTypesExist' => $individualSubscriptionTypesExist,
+			'institutionalSubscriptionTypesExist' => $institutionalSubscriptionTypesExist,
+		));
 		$templateMgr->display('user/subscriptions.tpl');
 
 	}
@@ -219,31 +222,25 @@ class UserHandler extends PKPUserHandler {
 		switch (array_shift($args)) {
 			case 'author':
 				$roleId = ROLE_ID_AUTHOR;
-				$setting = 'allowRegAuthor';
 				$deniedKey = 'user.noRoles.submitArticleRegClosed';
 				break;
 			case 'reviewer':
 				$roleId = ROLE_ID_REVIEWER;
-				$setting = 'allowRegReviewer';
 				$deniedKey = 'user.noRoles.regReviewerClosed';
 				break;
 			default:
-				$request->redirect(null, null, 'index');
+				return $request->redirect(null, null, 'index');
 		}
 
-		if ($journal->getSetting($setting)) {
-			$role = new Role();
-			$role->setJournalId($journal->getId());
-			$role->setRoleId($roleId);
-			$role->setUserId($user->getId());
-
-			$roleDao = DAORegistry::getDAO('RoleDAO');
-			$roleDao->insertRole($role);
+		$userGroupDao = DAORegistry::getDAO('UserGroupDAO');
+		$userGroup = $userGroupDao->getDefaultByRoleId($journal->getId(), $roleId);
+		if ($userGroup->getPermitSelfRegistration()) {
+			$userGroupDao->assignUserToGroup($user->getId(), $userGroup->getId());
 			$request->redirectUrl($request->getUserVar('source'));
 		} else {
 			$templateMgr = TemplateManager::getManager($request);
 			$templateMgr->assign('message', $deniedKey);
-			return $templateMgr->display('common/message.tpl');
+			return $templateMgr->display('frontend/pages/message.tpl');
 		}
 	}
 
@@ -266,36 +263,6 @@ class UserHandler extends PKPUserHandler {
 	function setupTemplate($request = null) {
 		parent::setupTemplate($request);
 		AppLocale::requireComponents(LOCALE_COMPONENT_APP_AUTHOR, LOCALE_COMPONENT_APP_EDITOR, LOCALE_COMPONENT_APP_MANAGER, LOCALE_COMPONENT_PKP_GRID);
-	}
-
-	/**
-	 * View the public user profile for a user, specified by user ID,
-	 * if that user should be exposed for public view.
-	 * @param $args array
-	 * @param $request PKPRequest
-	 */
-	function viewPublicProfile($args, $request) {
-		$this->validate(false);
-		$templateMgr = TemplateManager::getManager($request);
-		$userId = (int) array_shift($args);
-
-		$accountIsVisible = false;
-
-		// Ensure that the user's profile info should be exposed:
-
-		$commentDao = DAORegistry::getDAO('CommentDAO');
-		if ($commentDao->attributedCommentsExistForUser($userId)) {
-			// At least one comment is attributed to the user
-			$accountIsVisible = true;
-		}
-
-		if(!$accountIsVisible) $request->redirect(null, 'index');
-
-		$userDao = DAORegistry::getDAO('UserDAO');
-		$user = $userDao->getById($userId);
-
-		$templateMgr->assign('user', $user);
-		$templateMgr->display('user/publicProfile.tpl');
 	}
 
 
@@ -507,8 +474,6 @@ class UserHandler extends PKPUserHandler {
 		$this->setupTemplate($request);
 		$user = $request->getUser();
 		$userId = $user->getId();
-		$journalId = $journal->getId();
-
 		$institutional = array_shift($args);
 		$subscriptionId = (int) array_shift($args);
 
@@ -558,8 +523,6 @@ class UserHandler extends PKPUserHandler {
 		$this->setupTemplate($request);
 		$user = $request->getUser();
 		$userId = $user->getId();
-		$journalId = $journal->getId();
-
 		$institutional = array_shift($args);
 		$subscriptionId = (int) array_shift($args);
 

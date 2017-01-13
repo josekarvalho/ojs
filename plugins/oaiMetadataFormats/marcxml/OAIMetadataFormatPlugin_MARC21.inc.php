@@ -3,7 +3,8 @@
 /**
  * @file plugins/oaiMetadataFormats/marcxml/OAIMetadataFormatPlugin_MARC21.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class OAIMetadataFormatPlugin_MARC21
@@ -37,15 +38,15 @@ class OAIMetadataFormatPlugin_MARC21 extends OAIMetadataFormatPlugin {
 		return 'OAIMetadataFormat_MARC21';
 	}
 
-	function getMetadataPrefix() {
+	static function getMetadataPrefix() {
 		return 'marcxml';
 	}
 
-	function getSchema() {
+	static function getSchema() {
 		return 'http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd';
 	}
 
-	function getNamespace() {
+	static function getNamespace() {
 		return 'http://www.loc.gov/MARC21/slim';
 	}
 }

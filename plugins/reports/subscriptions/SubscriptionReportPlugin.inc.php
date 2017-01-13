@@ -3,7 +3,8 @@
 /**
  * @file plugins/reports/subscriptions/SubscriptionReportPlugin.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class SubscriptionReportPlugin
@@ -12,7 +13,7 @@
  * @brief Subscription report plugin
  */
 
-import('classes.plugins.ReportPlugin');
+import('lib.pkp.classes.plugins.ReportPlugin');
 
 class SubscriptionReportPlugin extends ReportPlugin {
 	/**
@@ -53,11 +54,9 @@ class SubscriptionReportPlugin extends ReportPlugin {
 	}
 
 	/**
-	 * Generate the subscription report and write CSV contents to file
-	 * @param $args array Request arguments
+	 * @copydoc ReportPlugin::display() 
 	 */
-	function display(&$args) {
-		$request = $this->getRequest();
+	function display($args, $request) {
 		$journal = $request->getJournal();
 		$journalId = $journal->getId();
 		$userDao = DAORegistry::getDAO('UserDAO');
@@ -92,7 +91,6 @@ class SubscriptionReportPlugin extends ReportPlugin {
 			'country' => __('common.country'),
 			'email' => __('user.email'),
 			'phone' => __('user.phone'),
-			'fax' => __('user.fax')
 		);
 
 		$columns = array_merge($columnsCommon, $columnsIndividual);
@@ -133,13 +131,13 @@ class SubscriptionReportPlugin extends ReportPlugin {
 						$columns[$index] = $subscription->getReferenceNumber();
 						break;
 					case 'notes':
-						$columns[$index] = String::html2text($subscription->getNotes());
+						$columns[$index] = PKPString::html2text($subscription->getNotes());
 						break;
 					case 'name':
 						$columns[$index] = $user->getFullName();
 						break;
 					case 'mailing_address':
-						$columns[$index] = String::html2text($user->getMailingAddress());
+						$columns[$index] = PKPString::html2text($user->getMailingAddress());
 						break;
 					case 'country':
 						$columns[$index] = $countryDao->getCountry($user->getCountry());
@@ -149,9 +147,6 @@ class SubscriptionReportPlugin extends ReportPlugin {
 						break;
 					case 'phone':
 						$columns[$index] = $user->getPhone();
-						break;
-					case 'fax':
-						$columns[$index] = $user->getFax();
 						break;
 					default:
 						$columns[$index] = '';
@@ -178,7 +173,6 @@ class SubscriptionReportPlugin extends ReportPlugin {
 			'country' => __('common.country'),
 			'email' => __('user.email'),
 			'phone' => __('user.phone'),
-			'fax' => __('user.fax')
 		);
 
 		$columns = array_merge($columnsCommon, $columnsInstitution);
@@ -219,13 +213,13 @@ class SubscriptionReportPlugin extends ReportPlugin {
 						$columns[$index] = $subscription->getReferenceNumber();
 						break;
 					case 'notes':
-						$columns[$index] = String::html2text($subscription->getNotes());
+						$columns[$index] = PKPString::html2text($subscription->getNotes());
 						break;
 					case 'institution_name':
 						$columns[$index] = $subscription->getInstitutionName();
 						break;
 					case 'institution_mailing_address':
-						$columns[$index] = String::html2text($subscription->getInstitutionMailingAddress());
+						$columns[$index] = PKPString::html2text($subscription->getInstitutionMailingAddress());
 						break;
 					case 'domain':
 						$columns[$index] = $subscription->getDomain();
@@ -237,7 +231,7 @@ class SubscriptionReportPlugin extends ReportPlugin {
 						$columns[$index] = $user->getFullName();
 						break;
 					case 'mailing_address':
-						$columns[$index] = String::html2text($user->getMailingAddress());
+						$columns[$index] = PKPString::html2text($user->getMailingAddress());
 						break;
 					case 'country':
 						$columns[$index] = $countryDao->getCountry($user->getCountry());
@@ -247,9 +241,6 @@ class SubscriptionReportPlugin extends ReportPlugin {
 						break;
 					case 'phone':
 						$columns[$index] = $user->getPhone();
-						break;
-					case 'fax':
-						$columns[$index] = $user->getFax();
 						break;
 					default:
 						$columns[$index] = '';

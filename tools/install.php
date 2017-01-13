@@ -3,7 +3,8 @@
 /**
  * @file tools/install.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class installTool
@@ -21,8 +22,8 @@ class OJSInstallTool extends InstallTool {
 	 * Constructor.
 	 * @param $argv array command-line arguments
 	 */
-	function OJSInstallTool($argv = array()) {
-		parent::InstallTool($argv);
+	function __construct($argv = array()) {
+		parent::__construct($argv);
 	}
 
 	/**
@@ -32,7 +33,7 @@ class OJSInstallTool extends InstallTool {
 	 */
 	function readParams() {
 		AppLocale::requireComponents(LOCALE_COMPONENT_PKP_INSTALLER, LOCALE_COMPONENT_APP_COMMON, LOCALE_COMPONENT_PKP_USER);
-		printf("%s\n", __('installer.ojsInstallation'));
+		printf("%s\n", __('installer.appInstallation'));
 
 		parent::readParams();
 

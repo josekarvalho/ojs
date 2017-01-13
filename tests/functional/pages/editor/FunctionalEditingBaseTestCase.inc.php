@@ -3,7 +3,8 @@
 /**
  * @file tests/functional/pages/editor/FunctionalEditingBaseTestCase.inc.php
  *
- * Copyright (c) 2000-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2000-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class FunctionalLucenePluginBaseTestCase
@@ -14,9 +15,7 @@
  * process (base class with common functionality).
  */
 
-
 import('lib.pkp.tests.WebTestCase');
-import('classes.file.ArticleFileManager');
 
 class FunctionalEditingBaseTestCase extends WebTestCase {
 
@@ -91,7 +90,7 @@ class FunctionalEditingBaseTestCase extends WebTestCase {
 		// We should now have the article ID in the URL.
 		$url = $this->getLocation();
 		$matches = null;
-		String::regexp_match_get('/articleId=([0-9]+)/', $url, $matches);
+		PKPString::regexp_match_get('/articleId=([0-9]+)/', $url, $matches);
 		self::assertTrue(count($matches) == 2);
 		$articleId = $matches[1];
 		self::assertTrue(is_numeric($articleId));
@@ -239,37 +238,6 @@ class FunctionalEditingBaseTestCase extends WebTestCase {
 		$this->type('name=label', strtoupper($fileLabel));
 
 		// Save the galley.
-		$this->clickAndWait('css=input.defaultButton');
-	}
-
-	/**
-	 * Upload the given file as a supplementary file.
-	 * @param $articleId integer
-	 * @param $suppFileUri string
-	 * @param $title string
-	 */
-	protected function uploadSuppFile($articleId, $suppFileUri, $title) {
-		// Open the editing page.
-		$submissionEditingPage = $this->baseUrl . '/index.php/lucene-test/editor/submissionEditing/' . $articleId;
-		$this->verifyAndOpen($submissionEditingPage);
-
-		// Select supp file upload radio option.
-		$this->click('layoutFileTypeSupp1');
-
-		// Set the supp file.
-		$this->attachFile('name=layoutFile', $suppFileUri);
-
-		// Click the upload button.
-		$this->clickAndWait('css=#layout form input.button');
-		$this->waitForLocation('*index.php/lucene-test/editor/editSuppFile*');
-
-		// Type the file label.
-		$this->type('title', $title);
-
-		// Set a language.
-		$this->type('language', 'en');
-
-		// Save the file.
 		$this->clickAndWait('css=input.defaultButton');
 	}
 }

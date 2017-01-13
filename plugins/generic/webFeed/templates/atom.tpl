@@ -1,7 +1,8 @@
 {**
  * plugins/generic/webFeed/templates/atom.tpl
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * Atom feed template
@@ -49,17 +50,13 @@
 		{assign var="description" value=$journal->getLocalizedSetting('searchDescription')}
 	{/if}
 
-	{if $journal->getLocalizedSetting('copyrightNotice')}
-		<rights>{$journal->getLocalizedSetting('copyrightNotice')|strip|escape:"html"}</rights>
-	{/if}
-
-	<subtitle>{$description|strip|escape:"html"}</subtitle>
+	<subtitle type="html">{$description|strip|escape:"html"}</subtitle>
 
 	{foreach name=sections from=$publishedArticles item=section key=sectionId}
 		{foreach from=$section.articles item=article}
 			<entry>
 				{* required elements *}
-				<id>{url page="article" op="view" path=$article->getBestArticleId($currentJournal)}</id>
+				<id>{url page="article" op="view" path=$article->getBestArticleId()}</id>
 				<title>{$article->getLocalizedTitle()|strip|escape:"html"}</title>
 				<updated>{$article->getLastModified()|date_format:"%Y-%m-%dT%T%z"|regex_replace:"/00$/":":00"}</updated>
 
@@ -74,10 +71,10 @@
 					</author>
 				{/foreach}{* authors *}
 
-				<link rel="alternate" href="{url page="article" op="view" path=$article->getBestArticleId($currentJournal)}" />
+				<link rel="alternate" href="{url page="article" op="view" path=$article->getBestArticleId()}" />
 
 				{if $article->getLocalizedAbstract()}
-					<summary type="html" xml:base="{url page="article" op="view" path=$article->getBestArticleId($currentJournal)}">{$article->getLocalizedAbstract()|strip|escape:"html"}</summary>
+					<summary type="html" xml:base="{url page="article" op="view" path=$article->getBestArticleId()}">{$article->getLocalizedAbstract()|strip|escape:"html"}</summary>
 				{/if}
 
 				{* optional elements *}
@@ -89,7 +86,7 @@
 				{/if}
 
 				{* <source/> *}
-				{* <rights/> *}
+				<rights>{translate|escape key="submission.copyrightStatement" copyrightYear=$article->getCopyrightYear() copyrightHolder=$article->getLocalizedCopyrightHolder()}</rights>
 			</entry>
 		{/foreach}{* articles *}
 	{/foreach}{* sections *}

@@ -3,7 +3,8 @@
 /**
  * @file classes/article/ArticleDAO.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class ArticleDAO
@@ -20,18 +21,19 @@ class ArticleDAO extends SubmissionDAO {
 	/**
 	 * Constructor.
 	 */
-	function ArticleDAO() {
-		parent::SubmissionDAO();
+	function __construct() {
+		parent::__construct();
 	}
 
 	/**
-	 * Get a list of field names for which data is localized.
+	 * Get a list of fields for which localized data is supported
 	 * @return array
 	 */
 	function getLocaleFieldNames() {
-		return parent::getLocaleFieldNames() + array(
-			'coverPageAltText', 'showCoverPage', 'hideCoverPageToc', 'hideCoverPageAbstract', 'originalFileName', 'fileName', 'width', 'height',
-		);
+		return array_merge(
+			parent::getLocaleFieldNames(), array(
+				'coverImageAltText', 'coverImage',
+		));
 	}
 
 	/**
@@ -46,14 +48,14 @@ class ArticleDAO extends SubmissionDAO {
 	 * avoid a potentially costly query.
 	 */
 	function getBySetting($settingName, $settingValue, $journalId = null, $rangeInfo = null) {
-		$params = $this->_getFetchParameters();
+		$params = $this->getFetchParameters();
 		$params[] = $settingName;
 
 		$sql = 'SELECT s.*, ps.date_published,
-				' . $this->_getFetchColumns() . '
+				' . $this->getFetchColumns() . '
 			FROM	submissions s
 				LEFT JOIN published_submissions ps ON (s.submission_id = ps.submission_id)
-				' . $this->_getFetchJoins() . ' ';
+				' . $this->getFetchJoins() . ' ';
 
 		if (is_null($settingValue)) {
 			$sql .= 'LEFT JOIN submission_settings sst ON a.submission_id = sst.submission_id AND sst.setting_name = ?
@@ -89,7 +91,6 @@ class ArticleDAO extends SubmissionDAO {
 		$article->setPages($row['pages']);
 		$article->setFastTracked($row['fast_tracked']);
 		$article->setHideAuthor($row['hide_author']);
-		$article->setCommentsStatus($row['comments_status']);
 
 		HookRegistry::call('ArticleDAO::_fromRow', array(&$article, &$row));
 		return $article;
@@ -111,13 +112,12 @@ class ArticleDAO extends SubmissionDAO {
 		$article->stampModified();
 		$this->update(
 			sprintf('INSERT INTO submissions
-				(locale, user_id, context_id, section_id, stage_id, language, comments_to_ed, citations, date_submitted, date_status_modified, last_modified, status, submission_progress, current_round, pages, fast_tracked, hide_author, comments_status)
+				(locale, context_id, section_id, stage_id, language, comments_to_ed, citations, date_submitted, date_status_modified, last_modified, status, submission_progress, current_round, pages, fast_tracked, hide_author)
 				VALUES
-				(?, ?, ?, ?, ?, ?, ?, ?, %s, %s, %s, ?, ?, ?, ?, ?, ?, ?)',
+				(?, ?, ?, ?, ?, ?, ?, %s, %s, %s, ?, ?, ?, ?, ?, ?)',
 				$this->datetimeToDB($article->getDateSubmitted()), $this->datetimeToDB($article->getDateStatusModified()), $this->datetimeToDB($article->getLastModified())),
 			array(
 				$article->getLocale(),
-				(int) $article->getUserId(),
 				(int) $article->getContextId(),
 				(int) $article->getSectionId(),
 				(int) $article->getStageId(),
@@ -130,7 +130,6 @@ class ArticleDAO extends SubmissionDAO {
 				$article->getPages(),
 				(int) $article->getFastTracked(),
 				(int) $article->getHideAuthor(),
-				(int) $article->getCommentsStatus()
 			)
 		);
 
@@ -156,7 +155,6 @@ class ArticleDAO extends SubmissionDAO {
 		$this->update(
 			sprintf('UPDATE submissions
 				SET	locale = ?,
-					user_id = ?,
 					section_id = ?,
 					stage_id = ?,
 					language = ?,
@@ -170,13 +168,11 @@ class ArticleDAO extends SubmissionDAO {
 					current_round = ?,
 					pages = ?,
 					fast_tracked = ?,
-					hide_author = ?,
-					comments_status = ?
+					hide_author = ?
 				WHERE submission_id = ?',
 				$this->datetimeToDB($article->getDateSubmitted()), $this->datetimeToDB($article->getDateStatusModified()), $this->datetimeToDB($article->getLastModified())),
 			array(
 				$article->getLocale(),
-				(int) $article->getUserId(),
 				(int) $article->getSectionId(),
 				(int) $article->getStageId(),
 				$article->getLanguage(),
@@ -188,7 +184,6 @@ class ArticleDAO extends SubmissionDAO {
 				$article->getPages(),
 				(int) $article->getFastTracked(),
 				(int) $article->getHideAuthor(),
-				(int) $article->getCommentsStatus(),
 				(int) $article->getId()
 			)
 		);
@@ -212,40 +207,27 @@ class ArticleDAO extends SubmissionDAO {
 	}
 
 	/**
-	 * Delete an article by ID.
-	 * @param $articleId int
+	 * @copydoc Submission::deleteById
 	 */
-	function deleteById($articleId) {
-		parent::deleteById($articleId);
+	function deleteById($submissionId) {
+		parent::deleteById($submissionId);
 
 		$publishedArticleDao = DAORegistry::getDAO('PublishedArticleDAO');
-		$publishedArticleDao->deletePublishedArticleByArticleId($articleId);
+		$publishedArticleDao->deletePublishedArticleByArticleId($submissionId);
 
 		$articleGalleyDao = DAORegistry::getDAO('ArticleGalleyDAO');
-		$articleGalleyDao->deleteGalleysByArticle($articleId);
+		$articleGalleyDao->deleteByArticleId($submissionId);
 
 		$articleSearchDao = DAORegistry::getDAO('ArticleSearchDAO');
-		$articleSearchDao->deleteSubmissionKeywords($articleId);
-
-		// Delete article files -- first from the filesystem, then from the database
-		import('classes.file.ArticleFileManager');
-		$articleFileDao = DAORegistry::getDAO('ArticleFileDAO');
-		$articleFiles = $articleFileDao->getArticleFilesByArticle($articleId);
-
-		$articleFileManager = new ArticleFileManager($articleId);
-		foreach ($articleFiles as $articleFile) {
-			$articleFileManager->deleteFile($articleFile->getFileId());
-		}
-
-		$articleFileDao->deleteArticleFiles($articleId);
+		$articleSearchDao->deleteSubmissionKeywords($submissionId);
 
 		// Delete article citations.
 		$citationDao = DAORegistry::getDAO('CitationDAO');
-		$citationDao->deleteObjectsByAssocId(ASSOC_TYPE_ARTICLE, $articleId);
+		$citationDao->deleteObjectsByAssocId(ASSOC_TYPE_ARTICLE, $submissionId);
 
 		import('classes.search.ArticleSearchIndex');
 		$articleSearchIndex = new ArticleSearchIndex();
-		$articleSearchIndex->articleDeleted($articleId);
+		$articleSearchIndex->articleDeleted($submissionId);
 		$articleSearchIndex->articleChangesFinished();
 
 		$this->flushCache();
@@ -259,24 +241,6 @@ class ArticleDAO extends SubmissionDAO {
 	function getJournalId($articleId) {
 		$result = $this->retrieve(
 			'SELECT context_id FROM submissions WHERE submission_id = ?', (int) $articleId
-		);
-		$returner = isset($result->fields[0]) ? $result->fields[0] : false;
-
-		$result->Close();
-		return $returner;
-	}
-
-	/**
-	 * Check if the specified incomplete submission exists.
-	 * @param $articleId int
-	 * @param $userId int
-	 * @param $journalId int
-	 * @return int the submission progress
-	 */
-	function incompleteSubmissionExists($articleId, $userId, $journalId) {
-		$result = $this->retrieve(
-			'SELECT submission_progress FROM submissions WHERE submission_id = ? AND user_id = ? AND context_id = ? AND date_submitted IS NULL',
-			array((int) $articleId, (int) $userId, (int) $journalId)
 		);
 		$returner = isset($result->fields[0]) ? $result->fields[0] : false;
 
@@ -354,35 +318,6 @@ class ArticleDAO extends SubmissionDAO {
 	}
 
 	/**
-	 * Checks if public identifier exists (other than for the specified
-	 * article ID, which is treated as an exception).
-	 * @param $pubIdType string One of the NLM pub-id-type values or
-	 * 'other::something' if not part of the official NLM list
-	 * (see <http://dtd.nlm.nih.gov/publishing/tag-library/n-4zh0.html>).
-	 * @param $pubId string
-	 * @param $articleId int An ID to be excluded from the search.
-	 * @param $journalId int
-	 * @return boolean
-	 */
-	function pubIdExists($pubIdType, $pubId, $articleId, $journalId) {
-		$result = $this->retrieve(
-			'SELECT COUNT(*)
-			FROM submission_settings sst
-				INNER JOIN submissions s ON sst.submission_id = s.submission_id
-			WHERE sst.setting_name = ? and sst.setting_value = ? and sst.submission_id <> ? AND s.context_id = ?',
-			array(
-				'pub-id::'.$pubIdType,
-				$pubId,
-				(int) $articleId,
-				(int) $journalId
-			)
-		);
-		$returner = $result->fields[0] ? true : false;
-		$result->Close();
-		return $returner;
-	}
-
-	/**
 	 * Removes articles from a section by section ID
 	 * @param $sectionId int
 	 */
@@ -391,30 +326,6 @@ class ArticleDAO extends SubmissionDAO {
 			'UPDATE submissions SET section_id = null WHERE section_id = ?', (int) $sectionId
 		);
 
-		$this->flushCache();
-	}
-
-	/**
-	 * Delete the public IDs of all articles in a journal.
-	 * @param $journalId int
-	 * @param $pubIdType string One of the NLM pub-id-type values or
-	 * 'other::something' if not part of the official NLM list
-	 * (see <http://dtd.nlm.nih.gov/publishing/tag-library/n-4zh0.html>).
-	 */
-	function deleteAllPubIds($journalId, $pubIdType) {
-		$journalId = (int) $journalId;
-		$settingName = 'pub-id::'.$pubIdType;
-
-		$articles = $this->getByContextId($journalId);
-		while ($article = $articles->next()) {
-			$this->update(
-				'DELETE FROM submission_settings WHERE setting_name = ? AND submission_id = ?',
-				array(
-					$settingName,
-					(int)$article->getId()
-				)
-			);
-		}
 		$this->flushCache();
 	}
 
@@ -428,84 +339,71 @@ class ArticleDAO extends SubmissionDAO {
 		$cache->flush();
 	}
 
-	/**
-	 * Get all unassigned submissions for a context or all contexts
-	 * @param $journalId mixed optional the ID of the journal to query, or an array containing possible context ids.
-	 * @param $subEditorId int optional the ID of the sub editor
-	 * 	whose section will be included in the results (excluding others).
-	 * @param $includeDeclined boolean optional include submissions which have STATUS_DECLINED
-	 * @param $includePublished boolean optional include submissions which are published
-	 * @param $rangeInfo DBRangeInfo
-	 * @return DAOResultFactory containing matching Submissions
-	 */
-	function getBySubEditorId($journalId = null, $subEditorId = null, $includeDeclined = true, $includePublished = true, $rangeInfo = null) {
-		$params = $this->_getFetchParameters();
-		$params[] = ROLE_ID_MANAGER;
-		if ($subEditorId) $params[] = (int) $subEditorId;
-		if ($journalId && is_int($journalId))
-			$params[] = (int) $journalId;
-
-		$result = $this->retrieveRange(
-			'SELECT	s.*, ps.date_published,
-				' . $this->_getFetchColumns() . '
-			FROM	submissions s
-				LEFT JOIN published_submissions ps ON s.submission_id = ps.submission_id
-				' . $this->_getFetchJoins() . '
-				LEFT JOIN stage_assignments sa ON (s.submission_id = sa.submission_id)
-				LEFT JOIN user_groups g ON (sa.user_group_id = g.user_group_id AND g.role_id = ?)
-				' . ($subEditorId?' JOIN section_editors see ON (see.journal_id = s.context_id AND see.user_id = ? AND see.section_id = s.section_id)':'') . '
-			WHERE	s.date_submitted IS NOT NULL'
-			. (!$includeDeclined?' AND s.status <> ' . STATUS_DECLINED : '' )
-			. (!$includePublished?' AND ps.date_published IS NULL' : '' )
-			. ($journalId && !is_array($journalId)?' AND s.context_id = ?':'')
-			. ($journalId && is_array($journalId)?' AND s.context_id IN  (' . join(',', array_map(array($this,'_arrayWalkIntCast'), $journalId)) . ')':'') . '
-
-			GROUP BY s.submission_id',
-			$params,
-			$rangeInfo
-		);
-
-		return new DAOResultFactory($result, $this, '_fromRow');
-	}
 
 	//
 	// Protected functions
 	//
 	/**
-	 * Return a list of extra parameters to bind to the submission fetch queries.
-	 * @return array
+	 * @copydoc SubmissionDAO::getFetchParameters()
 	 */
-	protected function _getFetchParameters() {
+	protected function getFetchParameters() {
 		$primaryLocale = AppLocale::getPrimaryLocale();
 		$locale = AppLocale::getLocale();
 		return array(
-			'title', $primaryLocale,
+			'title', $primaryLocale, // Section title
 			'title', $locale,
-			'abbrev', $primaryLocale,
+			'abbrev', $primaryLocale, // Section abbrevation
 			'abbrev', $locale,
 		);
 	}
 
 	/**
-	 * Return a SQL snippet of extra columns to fetch during submission fetch queries.
-	 * @return string
+	 * @copydoc SubmissionDAO::getFetchColumns()
 	 */
-	protected function _getFetchColumns() {
+	protected function getFetchColumns() {
 		return 'COALESCE(stl.setting_value, stpl.setting_value) AS section_title,
 			COALESCE(sal.setting_value, sapl.setting_value) AS section_abbrev';
 	}
 
 	/**
-	 * Return a SQL snippet of extra joins to include during fetch queries.
-	 * @return string
+	 * @copydoc SubmissionDAO::getFetchJoins()
 	 */
-	protected function _getFetchJoins() {
+	protected function getFetchJoins() {
 		return 'JOIN sections se ON se.section_id = s.section_id
 			LEFT JOIN section_settings stpl ON (se.section_id = stpl.section_id AND stpl.setting_name = ? AND stpl.locale = ?)
 			LEFT JOIN section_settings stl ON (se.section_id = stl.section_id AND stl.setting_name = ? AND stl.locale = ?)
 			LEFT JOIN section_settings sapl ON (se.section_id = sapl.section_id AND sapl.setting_name = ? AND sapl.locale = ?)
 			LEFT JOIN section_settings sal ON (se.section_id = sal.section_id AND sal.setting_name = ? AND sal.locale = ?)';
 	}
+
+	/**
+	 * @copydoc SubmissionDAO::getSubEditorJoin()
+ 	 */
+	protected function getSubEditorJoin() {
+		return 'JOIN section_editors see ON (see.journal_id = s.context_id AND see.user_id = ? AND see.section_id = s.section_id)';
+	}
+
+	/**
+	 * @copydoc SubmissionDAO::getGroupByColumns()
+	 */
+	protected function getGroupByColumns() {
+		return 's.submission_id, ps.date_published, stl.setting_value, stpl.setting_value, sal.setting_value, sapl.setting_value';
+	}
+
+	/**
+	 * @copydoc SubmissionDAO::getCompletionJoins()
+	 */
+	protected function getCompletionJoins() {
+		return 'LEFT JOIN issues i ON (ps.issue_id = i.issue_id)';
+	}
+
+	/**
+	 * @copydoc SubmissionDAO::getCompletionConditions()
+	 */
+	protected function getCompletionConditions($completed) {
+		return ' i.date_published IS ' . ($completed?'NOT ':'') . 'NULL ';
+	}
+
 }
 
 ?>

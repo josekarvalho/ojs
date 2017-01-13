@@ -3,7 +3,8 @@
 /**
  * @file controllers/modals/editorDecision/EditorDecisionHandler.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class EditorDecisionHandler
@@ -21,15 +22,15 @@ class EditorDecisionHandler extends PKPEditorDecisionHandler {
 	/**
 	 * Constructor.
 	 */
-	function EditorDecisionHandler() {
-		parent::PKPEditorDecisionHandler();
+	function __construct() {
+		parent::__construct();
 
 		$this->addRoleAssignment(
 			array(ROLE_ID_SUB_EDITOR, ROLE_ID_MANAGER),
 			array_merge(array(
 				'externalReview', 'saveExternalReview',
 				'sendReviews', 'saveSendReviews',
-				'promote', 'savePromote', 'saveApproveProof'
+				'promote', 'savePromote',
 			), $this->_getReviewRoundOps())
 		);
 	}
@@ -43,9 +44,8 @@ class EditorDecisionHandler extends PKPEditorDecisionHandler {
 	 */
 	function authorize($request, &$args, $roleAssignments) {
 		$stageId = (int) $request->getUserVar('stageId');
-		import('classes.security.authorization.OjsEditorDecisionAccessPolicy');
-		$this->addPolicy(new OjsEditorDecisionAccessPolicy($request, $args, $roleAssignments, 'submissionId', $stageId));
-
+		import('lib.pkp.classes.security.authorization.EditorDecisionAccessPolicy');
+		$this->addPolicy(new EditorDecisionAccessPolicy($request, $args, $roleAssignments, 'submissionId', $stageId));
 		return parent::authorize($request, $args, $roleAssignments);
 	}
 
@@ -60,61 +60,18 @@ class EditorDecisionHandler extends PKPEditorDecisionHandler {
 	 * @return string Serialized JSON object
 	 */
 	function saveNewReviewRound($args, $request) {
-		// Retrieve the authorized submission.
-		$submission = $this->getAuthorizedContextObject(ASSOC_TYPE_SUBMISSION);
 		// FIXME: this can probably all be managed somewhere.
 		$stageId = $this->getAuthorizedContextObject(ASSOC_TYPE_WORKFLOW_STAGE);
 		if ($stageId == WORKFLOW_STAGE_ID_EXTERNAL_REVIEW) {
 			$redirectOp = WORKFLOW_STAGE_PATH_EXTERNAL_REVIEW;
 		} else {
+			$redirectOp = null; // Suppress scrutinizer warn
 			assert(false);
 		}
 
 		return $this->_saveEditorDecision($args, $request, 'NewReviewRoundForm', $redirectOp, SUBMISSION_EDITOR_DECISION_RESUBMIT);
 	}
 
-	/**
-	 * Approve a galley submission file.
-	 * @param $args array
-	 * @param $request PKPRequest
-	 */
-	function saveApproveProof($args, $request) {
-		$submissionFile = $this->getAuthorizedContextObject(ASSOC_TYPE_SUBMISSION_FILE);
-		$submission = $this->getAuthorizedContextObject(ASSOC_TYPE_SUBMISSION);
-
-		// Make sure we only alter files associated with a galley.
-		if ($submissionFile->getAssocType() !== ASSOC_TYPE_GALLEY) {
-			fatalError('The requested file is not associated with any galley.');
-		}
-		if ($submissionFile->getViewable()) {
-
-			// No longer expose the file to readers.
-			$submissionFile->setViewable(false);
-		} else {
-
-			// Expose the file to readers (e.g. via e-commerce).
-			$submissionFile->setViewable(true);
-
-			// Log the approve proof event.
-			import('lib.pkp.classes.log.SubmissionLog');
-			import('classes.log.SubmissionEventLogEntry'); // constants
-			$user = $request->getUser();
-
-			$articleGalleyDao = DAORegistry::getDAO('ArticleGalleyDAO');
-			$galley = $articleGalleyDao->getGalleyByBestGalleyId($submissionFile->getAssocId(), $submission->getId());
-
-			SubmissionLog::logEvent($request, $submission, SUBMISSION_LOG_PROOFS_APPROVED, 'submission.event.proofsApproved', array('formatName' => $galley->getLabel(),'name' => $user->getFullName(), 'username' => $user->getUsername()));
-		}
-
-		$submissionFileDao = DAORegistry::getDAO('SubmissionFileDAO');
-		$submissionFileDao->updateObject($submissionFile);
-
-		// update the submission's file index
-		import('classes.search.ArticleSearchIndex');
-		ArticleSearchIndex::articleFilesChanged($submission);
-
-		return DAO::getDataChangedEvent($submissionFile->getId());
-	}
 
 	//
 	// Private helper methods
@@ -143,8 +100,8 @@ class EditorDecisionHandler extends PKPEditorDecisionHandler {
 		}
 
 		// Make sure user has access to the workflow stage.
-		$userGroupDao = DAORegistry::getDAO('UserGroupDAO');
-		$redirectWorkflowStage = $userGroupDao->getIdFromPath($redirectOp);
+		import('lib.pkp.classes.workflow.WorkflowStageDAO');
+		$redirectWorkflowStage = WorkflowStageDAO::getIdFromPath($redirectOp);
 		$userAccessibleWorkflowStages = $this->getAuthorizedContextObject(ASSOC_TYPE_ACCESSIBLE_WORKFLOW_STAGES);
 		if (!array_key_exists($redirectWorkflowStage, $userAccessibleWorkflowStages)) {
 			$redirectOp = null;

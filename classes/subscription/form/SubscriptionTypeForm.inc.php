@@ -3,7 +3,8 @@
 /**
  * @file classes/subscription/form/SubscriptionTypeForm.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class SubscriptionTypeForm
@@ -28,7 +29,7 @@ class SubscriptionTypeForm extends Form {
 	 * Constructor
 	 * @param typeId int leave as default for new subscription type
 	 */
-	function SubscriptionTypeForm($typeId = null) {
+	function __construct($typeId = null) {
 
 		$this->validFormats = array (
 			SUBSCRIPTION_TYPE_FORMAT_ONLINE => __('subscriptionTypes.format.online'),
@@ -44,9 +45,8 @@ class SubscriptionTypeForm extends Form {
 		}
 
 		$this->typeId = isset($typeId) ? (int) $typeId : null;
-		$journal = Request::getJournal();
 
-		parent::Form('subscription/subscriptionTypeForm.tpl');
+		parent::__construct('subscription/subscriptionTypeForm.tpl');
 
 		// Type name is provided
 		$this->addCheck(new FormValidatorLocale($this, 'name', 'required', 'manager.subscriptionTypes.form.typeNameRequired'));
@@ -75,6 +75,7 @@ class SubscriptionTypeForm extends Form {
 		// Public flag is valid value
 		$this->addCheck(new FormValidatorInSet($this, 'disable_public_display', 'optional', 'manager.subscriptionTypes.form.publicValid', array('1')));
 		$this->addCheck(new FormValidatorPost($this));
+		$this->addCheck(new FormValidatorCSRF($this));
 	}
 
 	/**
@@ -144,7 +145,7 @@ class SubscriptionTypeForm extends Form {
 	 */
 	function execute() {
 		$subscriptionTypeDao = DAORegistry::getDAO('SubscriptionTypeDAO');
-		$journal = Request::getJournal();
+		$nonExpiring = null; // Suppress scrutinizer warn
 
 		if (isset($this->typeId)) {
 			$subscriptionType =& $subscriptionTypeDao->getSubscriptionType($this->typeId);
@@ -158,6 +159,7 @@ class SubscriptionTypeForm extends Form {
 			$subscriptionType->setInstitutional($this->getData('institutional') == null ? 0 : $this->getData('institutional'));
 		}
 
+		$journal = Request::getJournal();
 		$subscriptionType->setJournalId($journal->getId());
 		$subscriptionType->setName($this->getData('name'), null); // Localized
 		$subscriptionType->setDescription($this->getData('description'), null); // Localized

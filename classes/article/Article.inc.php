@@ -9,7 +9,8 @@
 /**
  * @file classes/article/Article.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class Article
@@ -24,19 +25,14 @@ define ('AUTHOR_TOC_DEFAULT', 0);
 define ('AUTHOR_TOC_HIDE', 1);
 define ('AUTHOR_TOC_SHOW', 2);
 
-// Article RT comments
-define ('COMMENTS_SECTION_DEFAULT', 0);
-define ('COMMENTS_DISABLE', 1);
-define ('COMMENTS_ENABLE', 2);
-
 import('lib.pkp.classes.submission.Submission');
 
 class Article extends Submission {
 	/**
 	 * Constructor.
 	 */
-	function Article() {
-		parent::Submission();
+	function __construct() {
+		parent::__construct();
 	}
 
 
@@ -45,23 +41,77 @@ class Article extends Submission {
 	//
 
 	/**
-	 * Return the "best" article ID -- If a public article ID is set,
-	 * use it; otherwise use the internal article Id. (Checks the journal
-	 * settings to ensure that the public ID feature is enabled.)
-	 * @param $journal Object the journal this article is in
-	 * @return string
+	 * Get the value of a license field from the containing context.
+	 * @param $locale string Locale code
+	 * @param $field PERMISSIONS_FIELD_...
+	 * @return string|null
 	 */
-	function getBestArticleId($journal = null) {
-		// Retrieve the journal, if necessary.
-		if (!isset($journal)) {
-			$journalDao = DAORegistry::getDAO('JournalDAO');
-			$journal = $journalDao->getById($this->getJournalId());
+	function _getContextLicenseFieldValue($locale, $field) {
+		$contextDao = Application::getContextDAO();
+		$context = $contextDao->getById($this->getContextId());
+		$fieldValue = null; // Scrutinizer
+		switch ($field) {
+			case PERMISSIONS_FIELD_LICENSE_URL:
+				$fieldValue = $context->getSetting('licenseURL');
+				break;
+			case PERMISSIONS_FIELD_COPYRIGHT_HOLDER:
+				switch($context->getSetting('copyrightHolderType')) {
+					case 'author':
+						$fieldValue = array($context->getPrimaryLocale() => $this->getAuthorString());
+						break;
+					case 'other':
+						$fieldValue = $context->getSetting('copyrightHolderOther');
+						break;
+					case 'context':
+					default:
+						$fieldValue = $context->getName(null);
+						break;
+				}
+				break;
+			case PERMISSIONS_FIELD_COPYRIGHT_YEAR:
+				// Default copyright year to current year
+				$fieldValue = date('Y');
+
+				// Override based on context settings
+				$publishedArticleDao =& DAORegistry::getDAO('PublishedArticleDAO');
+				$publishedArticle = $publishedArticleDao->getPublishedArticleByArticleId($this->getId());
+				if ($publishedArticle) {
+					switch($context->getSetting('copyrightYearBasis')) {
+						case 'submission':
+							// override to the submission's year if published as you go
+							$fieldValue = date('Y', strtotime($publishedArticle->getDatePublished()));
+							break;
+						case 'issue':
+							if ($publishedArticle->getIssueId()) {
+								// override to the issue's year if published as issue-based
+								$issueDao =& DAORegistry::getDAO('IssueDAO');
+								$issue = $issueDao->getIssueByArticleId($this->getId());
+								if ($issue && $issue->getDatePublished()) {
+									$fieldValue = date('Y', strtotime($issue->getDatePublished()));
+								}
+							}
+							break;
+						default: assert(false);
+					}
+				}
+				break;
+			default: assert(false);
 		}
 
-		if ($journal->getSetting('enablePublicArticleId')) {
-			$publicArticleId = $this->getPubId('publisher-id');
-			if (!empty($publicArticleId)) return $publicArticleId;
-		}
+		// Return the fetched license field
+		if ($locale === null || !is_array($fieldValue)) return $fieldValue;
+		if (isset($fieldValue[$locale])) return $fieldValue[$locale];
+		return null;
+	}
+
+	/**
+	 * Return the "best" article ID -- If a public article ID is set,
+	 * use it; otherwise use the internal article Id.
+	 * @return string
+	 */
+	function getBestArticleId() {
+		$publicArticleId = $this->getStoredPubId('publisher-id');
+		if (!empty($publicArticleId)) return $publicArticleId;
 		return $this->getId();
 	}
 
@@ -178,54 +228,92 @@ class Article extends Submission {
 	}
 
 	/**
-	 * Return locale string corresponding to RT comments status.
-	 * @return string
-	 */
-	function getCommentsStatusString() {
-		switch ($this->getCommentsStatus()) {
-			case COMMENTS_DISABLE:
-				return 'article.comments.disable';
-			case COMMENTS_ENABLE:
-				return 'article.comments.enable';
-			default:
-				return 'article.comments.sectionDefault';
-		}
-	}
-
-	/**
-	 * Return boolean indicating if article RT comments should be enabled.
-	 * Checks both the section and article comments status. Article status
-	 * overrides section status.
+	 * Get starting page of an article.
 	 * @return int
 	 */
-	function getEnableComments() {
-		switch ($this->getCommentsStatus()) {
-			case COMMENTS_DISABLE:
-				return false;
-			case COMMENTS_ENABLE:
-				return true;
-			case COMMENTS_SECTION_DEFAULT:
-				$sectionDao = DAORegistry::getDAO('SectionDAO');
-				$section = $sectionDao->getById($this->getSectionId(), $this->getJournalId(), true);
-				if ($section->getDisableComments()) {
-					return false;
-				} else {
-					return true;
-				}
-		}
+	function getStartingPage() {
+		preg_match('/^[^\d]*(\d+)\D*(.*)$/', $this->getPages(), $pages);
+		return $pages[1];
 	}
 
 	/**
-	 * Get an associative array matching RT comments status codes with locale strings.
-	 * @return array comments status => localeString
+	 * Get ending page of an article.
+	 * @return int
 	 */
-	function &getCommentsStatusOptions() {
-		static $commentsStatusOptions = array(
-			COMMENTS_SECTION_DEFAULT => 'article.comments.sectionDefault',
-			COMMENTS_DISABLE => 'article.comments.disable',
-			COMMENTS_ENABLE => 'article.comments.enable'
-		);
-		return $commentsStatusOptions;
+	function getEndingPage() {
+		preg_match('/^[^\d]*(\d+)\D*(.*)$/', $this->getPages(), $pages);
+		return $pages[2];
+	}
+
+	/**
+	 * Get the localized cover page server-side file name
+	 * @return string
+	 */
+	function getLocalizedCoverImage() {
+		return $this->getLocalizedData('coverImage');
+	}
+
+	/**
+	 * get cover page server-side file name
+	 * @param $locale string
+	 * @return string
+	 */
+	function getCoverImage($locale) {
+		return $this->getData('coverImage', $locale);
+	}
+
+	/**
+	 * set cover page server-side file name
+	 * @param $coverImage string
+	 * @param $locale string
+	 */
+	function setCoverImage($coverImage, $locale) {
+		$this->setData('coverImage', $coverImage, $locale);
+	}
+
+	/**
+	 * Get the localized cover page alternate text
+	 * @return string
+	 */
+	function getLocalizedCoverImageAltText() {
+		return $this->getLocalizedData('coverImageAltText');
+	}
+
+	/**
+	 * get cover page alternate text
+	 * @param $locale string
+	 * @return string
+	 */
+	function getCoverImageAltText($locale) {
+		return $this->getData('coverImageAltText', $locale);
+	}
+
+	/**
+	 * set cover page alternate text
+	 * @param $coverImageAltText string
+	 * @param $locale string
+	 */
+	function setCoverImageAltText($coverImageAltText, $locale) {
+		$this->setData('coverImageAltText', $coverImageAltText, $locale);
+	}
+
+	/**
+	 * Get a full URL to the localized cover image
+	 *
+	 * @return string
+	 */
+	function getLocalizedCoverImageUrl() {
+		$coverImage = $this->getLocalizedCoverImage();
+		if (!$coverImage) {
+			return '';
+		}
+
+		$request = Application::getRequest();
+
+		import('classes.file.PublicFileManager');
+		$publicFileManager = new PublicFileManager();
+
+		return $request->getBaseUrl() . '/' . $publicFileManager->getJournalFilesPath($this->getContextId()) . '/' . $coverImage;
 	}
 }
 

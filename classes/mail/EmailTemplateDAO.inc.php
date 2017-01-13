@@ -3,7 +3,8 @@
 /**
  * @file classes/mail/EmailTemplateDAO.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class EmailTemplateDAO
@@ -72,7 +73,7 @@ class EmailTemplateDAO extends PKPEmailTemplateDAO {
 	 * Delete all email templates for a specific journal.
 	 * @param $journalId int
 	 */
-	function deleteEmailTemplatesByJournal($journalId) {
+	function deleteEmailTemplatesByContext($journalId) {
 		return parent::deleteEmailTemplatesByAssoc(ASSOC_TYPE_JOURNAL, $journalId);
 	}
 

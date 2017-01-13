@@ -7,7 +7,8 @@
 /**
  * @file pages/user/index.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @ingroup pages_user
@@ -20,9 +21,6 @@ switch ($op) {
 	// Profiles
 	//
 	case 'profile':
-	case 'saveProfile':
-	case 'changePassword':
-	case 'savePassword':
 		define('HANDLER_CLASS', 'ProfileHandler');
 		import('lib.pkp.pages.user.ProfileHandler');
 		break;
@@ -31,6 +29,7 @@ switch ($op) {
 	//
 	case 'register':
 	case 'registerUser':
+	case 'registrationComplete':
 	case 'activateUser':
 		define('HANDLER_CLASS', 'RegistrationHandler');
 		import('lib.pkp.pages.user.RegistrationHandler');
@@ -38,13 +37,13 @@ switch ($op) {
 	//
 	// Misc.
 	//
+	case 'index':
 	case 'gifts':
 	case 'redeemGift':
 	case 'subscriptions':
 	case 'setLocale':
 	case 'become':
 	case 'authorizationDenied':
-	case 'viewPublicProfile':
 	case 'purchaseSubscription':
 	case 'payPurchaseSubscription':
 	case 'completePurchaseSubscription':

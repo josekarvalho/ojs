@@ -3,7 +3,8 @@
 /**
  * @file plugins/importexport/sample/SampleImportExportPlugin.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class SampleImportExportPlugin
@@ -12,7 +13,7 @@
  * @brief Sample import/export plugin
  */
 
-import('classes.plugins.ImportExportPlugin');
+import('lib.pkp.classes.plugins.ImportExportPlugin');
 
 class SampleImportExportPlugin extends ImportExportPlugin {
 	/**
@@ -54,7 +55,7 @@ class SampleImportExportPlugin extends ImportExportPlugin {
 	}
 
 	function display(&$args, $request) {
-		parent::display($args);
+		parent::display($args, $request);
 		switch (array_shift($args)) {
 			case 'exportIssue':
 				// The actual issue export code would go here

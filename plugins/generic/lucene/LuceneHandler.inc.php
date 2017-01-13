@@ -3,7 +3,8 @@
 /**
  * @file plugins/generic/lucene/LuceneHandler.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class LuceneHandler
@@ -23,8 +24,8 @@ class LuceneHandler extends Handler {
 	 * Constructor
 	 * @param $request Request
 	 */
-	function LuceneHandler($request) {
-		parent::Handler();
+	function __construct($request) {
+		parent::__construct();
 	}
 
 	/**
@@ -48,7 +49,7 @@ class LuceneHandler extends Handler {
 	 * AJAX request for search query auto-completion.
 	 * @param $args array
 	 * @param $request Request
-	 * @return JSON string
+	 * @return JSONMessage JSON object
 	 */
 	function queryAutocomplete($args, $request) {
 		$this->validate(null, $request);
@@ -93,8 +94,7 @@ class LuceneHandler extends Handler {
 		}
 
 		// Return the suggestions as JSON message.
-		$json = new JSONMessage(true, $suggestionList);
-		return $json->getString();
+		return new JSONMessage(true, $suggestionList);
 	}
 
 	/**

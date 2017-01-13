@@ -3,7 +3,8 @@
 /**
  * @file classes/subscription/form/IndividualSubscriptionForm.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class IndividualSubscriptionForm
@@ -18,11 +19,11 @@ class IndividualSubscriptionForm extends SubscriptionForm {
 
 	/**
 	 * Constructor
-	 * @param subscriptionId int leave as default for new subscription
+	 * @param $subscriptionId int leave as default for new subscription
+	 * @param $userId int?
 	 */
-	function IndividualSubscriptionForm($subscriptionId = null, $userId = null) {
-		parent::Form('subscription/individualSubscriptionForm.tpl');
-		parent::SubscriptionForm($subscriptionId, $userId);
+	function __construct($subscriptionId = null, $userId = null) {
+		parent::__construct('subscription/individualSubscriptionForm.tpl', $subscriptionId, $userId);
 
 		$subscriptionId = isset($subscriptionId) ? (int) $subscriptionId : null;
 		$userId = isset($userId) ? (int) $userId : null;
@@ -80,7 +81,7 @@ class IndividualSubscriptionForm extends SubscriptionForm {
 
 		// Send notification email
 		if ($this->_data['notifyEmail'] == 1) {
-			$mail =& $this->_prepareNotificationEmail('SUBSCRIPTION_NOTIFY');
+			$mail = $this->_prepareNotificationEmail('SUBSCRIPTION_NOTIFY');
 			$mail->send();
 		} 
 	}

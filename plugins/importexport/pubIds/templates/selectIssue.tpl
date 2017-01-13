@@ -1,7 +1,8 @@
 {**
  * plugins/importexport/pubIds/templates/selectIssues.tpl
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * List of issues for whose objects to potentially export the public identifiers
@@ -9,7 +10,6 @@
  *}
 {strip}
 {assign var="pageTitle" value="plugins.importexport.pubIds.export.selectIssue"}
-{assign var="pageCrumbTitle" value="plugins.importexport.pubIds.export.selectIssue"}
 {include file="common/header.tpl"}
 {/strip}
 
@@ -37,6 +37,7 @@ function toggleChecked() {
 	{rdelim});
 </script>
 <form class="pkp_form" action="{plugin_url path="exportIssues"}" method="post" id="issuesForm">
+{csrf}
 <table class="listing">
 	<tr>
 		<td colspan="5" class="headseparator">&nbsp;</td>

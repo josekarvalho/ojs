@@ -3,7 +3,8 @@
 /**
  * @file classes/gift/Gift.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class Gift
@@ -21,8 +22,8 @@ class Gift extends PKPGift {
 	/**
 	 * Constructor.
 	 */
-	function Gift() {
-		parent::PKPGift();
+	function __construct() {
+		parent::__construct();
 	}
 
 	/**
@@ -41,7 +42,6 @@ class Gift extends PKPGift {
 				} else {
 					return __('payment.type.gift', null, $locale) . ' ' . __('payment.type.gift.subscription', null, $locale);
 				}
-				break;
 			default:
 				return __('payment.type.gift', null, $locale);
 		}

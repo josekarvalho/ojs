@@ -3,7 +3,8 @@
 /**
  * @file classes/sword/OJSSwordDeposit.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class OJSSwordDeposit
@@ -32,11 +33,15 @@ class OJSSwordDeposit {
 	/** @var Issue */
 	var $issue;
 
+	/** @var Article */
+	var $article;
+
 	/**
 	 * Constructor.
 	 * Create a SWORD deposit object for an OJS article.
+	 * @param $article Article
 	 */
-	function OJSSwordDeposit(&$article) {
+	function __construct($article) {
 		// Create a directory for deposit contents
 		$this->outPath = tempnam('/tmp', 'sword');
 		unlink($this->outPath);
@@ -61,9 +66,10 @@ class OJSSwordDeposit {
 		$publishedArticle = $publishedArticleDao->getPublishedArticleByArticleId($article->getId());
 
 		$issueDao = DAORegistry::getDAO('IssueDAO');
-		if ($publishedArticle) $this->issue = $issueDao->getById($publishedArticle->getIssueId());
-
-		$this->article = $article;
+		if ($publishedArticle) {
+			$this->issue = $issueDao->getById($publishedArticle->getIssueId());
+			$this->article = $publishedArticle;
+		}
 	}
 
 	/**
@@ -77,7 +83,7 @@ class OJSSwordDeposit {
 
 		// The article can be published or not. Support either.
 		if (is_a($this->article, 'PublishedArticle')) {
-			$doi = $this->article->getPubId('doi');
+			$doi = $this->article->getStoredPubId('doi');
 			if ($doi !== null) $this->package->setIdentifier($doi);
 		}
 
@@ -98,7 +104,7 @@ class OJSSwordDeposit {
 	/**
 	 * Add a file to a package. Used internally.
 	 */
-	function _addFile(&$file) {
+	function _addFile($file) {
 		$targetFilename = $this->outPath . '/files/' . $file->getFilename();
 		copy($file->getFilePath(), $targetFilename);
 		$this->package->addFile($file->getFilename(), $file->getFileType());
@@ -172,7 +178,7 @@ class OJSSwordDeposit {
 			$url, $username, $password,
 			'',
 			$this->outPath . '/deposit.zip',
-			'http://purl.org/net/sword-types/METSDSpaceSIP',
+			'http://purl.org/net/sword/package/METSDSpaceSIP',
 			'application/zip', false, true
 		);
 		return $response;

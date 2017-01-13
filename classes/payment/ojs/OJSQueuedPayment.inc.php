@@ -3,7 +3,8 @@
 /**
  * @file classes/payment/ojs/OJSQueuedPayment.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class OJSQueuedPayment
@@ -24,6 +25,13 @@ class OJSQueuedPayment extends QueuedPayment {
 
 	/** @var string URL associated with this payment */
 	var $requestUrl;
+
+	/**
+	 * @copydoc QueuedPayment::QueuedPayment
+	 */
+	function __construct($amount, $currencyCode, $userId = null, $assocId = null) {
+		parent::__construct($amount, $currencyCode, $userId, $assocId);
+	}
 
 	/**
 	 * Get the journal ID of the payment.

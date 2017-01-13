@@ -1,7 +1,8 @@
 {**
  * templates/gateway/clockss.tpl
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Adapted from lockss.tpl by Martin Paul Eve
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
@@ -30,7 +31,7 @@
 
 <ul>
 {iterate from=issues item=issue}
-	<li><a href="{url page="issue" op="view" path=$issue->getBestIssueId($journal)}">{$issue->getIssueIdentification()|strip_unsafe_html|nl2br}</a></li>
+	<li><a href="{url page="issue" op="view" path=$issue->getBestIssueId()}">{$issue->getIssueIdentification()|strip_unsafe_html|nl2br}</a></li>
 {/iterate}
 </ul>
 

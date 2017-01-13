@@ -3,7 +3,8 @@
 /**
  * @file classes/user/UserAction.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class UserAction
@@ -18,7 +19,7 @@ class UserAction {
 	/**
 	 * Constructor.
 	 */
-	function UserAction() {
+	function __construct() {
 	}
 
 	/**
@@ -36,21 +37,6 @@ class UserAction {
 
 		HookRegistry::call('UserAction::mergeUsers', array(&$oldUserId, &$newUserId));
 
-		$articleDao = DAORegistry::getDAO('ArticleDAO');
-		$articles = $articleDao->getByUserId($oldUserId);
-		while ($article = $articles->next()) {
-			$article->setUserId($newUserId);
-			$articleDao->updateObject($article);
-		}
-
-		$commentDao = DAORegistry::getDAO('CommentDAO');
-		$userDao = DAORegistry::getDAO('UserDAO');
-		$newUser = $userDao->getById($newUserId);
-		foreach ($commentDao->getByUserId($oldUserId) as $comment) {
-			$comment->setUser($newUser);
-			$commentDao->updateObject($comment);
-		}
-
 		$noteDao = DAORegistry::getDAO('NoteDAO');
 		$notes = $noteDao->getByUserId($oldUserId);
 		while ($note = $notes->next()) {
@@ -66,10 +52,6 @@ class UserAction {
 			$reviewAssignment->setReviewerId($newUserId);
 			$reviewAssignmentDao->updateObject($reviewAssignment);
 		}
-
-		// Transfer signoffs (e.g. copyediting, layout editing)
-		$signoffDao = DAORegistry::getDAO('SignoffDAO');
-		$signoffDao->transferSignoffs($oldUserId, $newUserId);
 
 		$articleEmailLogDao = DAORegistry::getDAO('SubmissionEmailLogDAO');
 		$articleEmailLogDao->changeUser($oldUserId, $newUserId);
@@ -133,6 +115,14 @@ class UserAction {
 			$giftDao->updateObject($gift);
 		}
 
+		// Transfer completed payments.
+		$paymentDao = DAORegistry::getDAO('OJSCompletedPaymentDAO');
+		$paymentFactory = $paymentDao->getByUserId($oldUserId);
+		while ($payment = $paymentFactory->next()) {
+			$payment->setUserId($newUserId);
+			$paymentDao->updateObject($payment);
+		}
+
 		// Delete the old user and associated info.
 		$sessionDao = DAORegistry::getDAO('SessionDAO');
 		$sessionDao->deleteByUserId($oldUserId);
@@ -140,8 +130,8 @@ class UserAction {
 		$temporaryFileDao->deleteByUserId($oldUserId);
 		$userSettingsDao = DAORegistry::getDAO('UserSettingsDAO');
 		$userSettingsDao->deleteSettings($oldUserId);
-		$sectionEditorsDao = DAORegistry::getDAO('SectionEditorsDAO');
-		$sectionEditorsDao->deleteByUserId($oldUserId);
+		$subEditorsDao = DAORegistry::getDAO('SubEditorsDAO');
+		$subEditorsDao->deleteByUserId($oldUserId);
 
 		// Transfer old user's roles
 		$userGroupDao = DAORegistry::getDAO('UserGroupDAO');
@@ -153,6 +143,21 @@ class UserAction {
 			}
 		}
 		$userGroupDao->deleteAssignmentsByUserId($oldUserId);
+
+		// Transfer stage assignments.
+		$stageAssignmentDao = DAORegistry::getDAO('StageAssignmentDAO');
+		$stageAssignments = $stageAssignmentDao->getByUserId($oldUserId);
+		while ($stageAssignment = $stageAssignments->next()) {
+			$duplicateAssignments = $stageAssignmentDao->getBySubmissionAndStageId($stageAssignment->getSubmissionId(), null, $stageAssignment->getUserGroupId(), $newUserId);
+			if (!$duplicateAssignments->next()) {
+				// If no similar assignments already exist, transfer this one.
+				$stageAssignment->setUserId($newUserId);
+				$stageAssignmentDao->updateObject($stageAssignment);
+			} else {
+				// There's already a stage assignment for the new user; delete.
+				$stageAssignmentDao->deleteObject($stageAssignment);
+			}
+		}
 
 		$userDao = DAORegistry::getDAO('UserDAO');
 		$userDao->deleteUserById($oldUserId);

@@ -3,7 +3,8 @@
 /**
  * @file controllers/grid/settings/plugins/SettingsPluginGridHandler.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class SettingsPluginGridHandler
@@ -18,10 +19,10 @@ class SettingsPluginGridHandler extends PluginGridHandler {
 	/**
 	 * Constructor
 	 */
-	function SettingsPluginGridHandler() {
+	function __construct() {
 		$roles = array(ROLE_ID_SITE_ADMIN, ROLE_ID_MANAGER);
-		$this->addRoleAssignment($roles, array('plugin'));
-		parent::PluginGridHandler($roles);
+		$this->addRoleAssignment($roles, array('manage'));
+		parent::__construct($roles);
 	}
 
 
@@ -31,16 +32,8 @@ class SettingsPluginGridHandler extends PluginGridHandler {
 	/**
 	 * @copydoc PluginGridHandler::loadData()
 	 */
-	function getCategoryData($categoryDataElement, $filter) {
-		$plugins = parent::getCategoryData($categoryDataElement, $filter);
-
-		$journalDao = DAORegistry::getDAO('JournalDAO');
-		$journals = $journalDao->getAll();
-		$singleJournal = false;
-		if ($journals->getCount() == 1) {
-			$singleJournal = true;
-		}
-
+	function loadCategoryData($request, $categoryDataElement, $filter) {
+		$plugins = parent::loadCategoryData($request, $categoryDataElement, $filter);
 		$userRoles = $this->getAuthorizedContextObject(ASSOC_TYPE_USER_ROLES);
 
 		$showSitePlugins = false;
@@ -68,7 +61,7 @@ class SettingsPluginGridHandler extends PluginGridHandler {
 	/**
 	 * @copydoc CategoryGridHandler::getCategoryRowInstance()
 	 */
-	function getRowInstance() {
+	protected function getRowInstance() {
 		$userRoles = $this->getAuthorizedContextObject(ASSOC_TYPE_USER_ROLES);
 
 		import('controllers.grid.plugins.PluginGridRow');
@@ -79,21 +72,22 @@ class SettingsPluginGridHandler extends PluginGridHandler {
 	 * @copydoc GridHandler::authorize()
 	 */
 	function authorize($request, $args, $roleAssignments) {
-		$category = $request->getUserVar('category');
+		$categoryName = $request->getUserVar('category');
 		$pluginName = $request->getUserVar('plugin');
-		$verb = $request->getUserVar('verb');
-
-		if ($category && $pluginName) {
+		if ($categoryName && $pluginName) {
 			import('classes.security.authorization.OjsPluginAccessPolicy');
-			if ($verb) {
-				$accessMode = ACCESS_MODE_MANAGE;
-			} else {
-				$accessMode = ACCESS_MODE_ADMIN;
+			switch ($request->getRequestedOp()) {
+				case 'enable':
+				case 'disable':
+				case 'manage':
+					$accessMode = ACCESS_MODE_MANAGE;
+					break;
+				default:
+					$accessMode = ACCESS_MODE_ADMIN;
+					break;
 			}
-
 			$this->addPolicy(new OjsPluginAccessPolicy($request, $args, $roleAssignments, $accessMode));
 		}
-
 		return parent::authorize($request, $args, $roleAssignments);
 	}
 }

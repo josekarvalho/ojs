@@ -3,7 +3,8 @@
 /**
  * @file classes/security/RoleDAO.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class RoleDAO
@@ -13,26 +14,22 @@
  * @brief Operations for retrieving and modifying Role objects.
  */
 
-
-import('classes.security.Role');
+import('lib.pkp.classes.security.Role');
 import('lib.pkp.classes.security.PKPRoleDAO');
 
+/** ID codes for all user roles */
+define('ROLE_ID_SECTION_EDITOR',	0x00000011);
+define('ROLE_ID_SUBSCRIPTION_MANAGER',	0x00200000);
+
+/** Fill in the blanks for roles used in PKP lib */
+define('ROLE_ID_SUB_EDITOR',		ROLE_ID_SECTION_EDITOR);
 
 class RoleDAO extends PKPRoleDAO {
 	/**
 	 * Constructor.
 	 */
-	function RoleDAO() {
-		parent::PKPRoleDAO();
-		$this->userDao = DAORegistry::getDAO('UserDAO');
-	}
-
-	/**
-	 * Create new data object.
-	 * @return Role
-	 */
-	function newDataObject() {
-		return new Role();
+	function __construct() {
+		parent::__construct();
 	}
 
 	/**
@@ -46,8 +43,6 @@ class RoleDAO extends PKPRoleDAO {
 
 		$journalRoleNames = array(
 			ROLE_ID_MANAGER => 'user.role.manager',
-			ROLE_ID_EDITOR => 'user.role.editor',
-			ROLE_ID_GUEST_EDITOR => 'user.role.guestEditor',
 			ROLE_ID_ASSISTANT => 'user.role.journalAssistant',
 			ROLE_ID_SECTION_EDITOR => 'user.role.sectionEditor',
 			ROLE_ID_SUBSCRIPTION_MANAGER => 'user.role.subscriptionManager',
@@ -62,24 +57,6 @@ class RoleDAO extends PKPRoleDAO {
 			return $returner;
 		} else {
 			return $roleNames;
-		}
-	}
-
-	/**
-	 * Get a role's ID based on its path.
-	 * @param $rolePath string
-	 * @return int
-	 */
-	function getRoleIdFromPath($rolePath) {
-		switch ($rolePath) {
-			case 'editor':
-				return ROLE_ID_EDITOR;
-			case 'sectionEditor':
-				return ROLE_ID_SECTION_EDITOR;
-			case 'subscriptionManager':
-				return ROLE_ID_SUBSCRIPTION_MANAGER;
-			default:
-				return parent::getRoleIdFromPath($rolePath);
 		}
 	}
 }

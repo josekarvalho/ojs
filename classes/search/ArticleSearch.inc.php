@@ -3,7 +3,8 @@
 /**
  * @file classes/search/ArticleSearch.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class ArticleSearch
@@ -19,17 +20,17 @@ class ArticleSearch extends SubmissionSearch {
 	/**
 	 * Constructor
 	 */
-	function ArticleSearch() {
-		parent::SubmissionSearch();
+	function __construct() {
+		parent::__construct();
 	}
 
 	/**
 	 * See SubmissionSearch::getSparseArray()
 	 */
 	function &getSparseArray(&$unorderedResults, $orderBy, $orderDir, $exclude) {
-    	// Calculate a well-ordered (unique) score.
-    	$resultCount = count($unorderedResults);
-    	$i = 0;
+		// Calculate a well-ordered (unique) score.
+		$resultCount = count($unorderedResults);
+		$i = 0;
 		foreach ($unorderedResults as $submissionId => &$data) {
 			$data['score'] = ($resultCount * $data['count']) + $i++;
 			unset($data);
@@ -63,22 +64,23 @@ class ArticleSearch extends SubmissionSearch {
 					STATISTICS_DIMENSION_ASSOC_TYPE => array(ASSOC_TYPE_GALLEY, ASSOC_TYPE_ARTICLE),
 					STATISTICS_DIMENSION_ARTICLE_ID => array(array_keys($unorderedResults))
 				);
-		        if ($orderBy == 'popularityMonth') {
-		          $oneMonthAgo = date('Ymd', strtotime('-1 month'));
-		          $today = date('Ymd');
-		          $filter[STATISTICS_DIMENSION_DAY] = array('from' => $oneMonthAgo, 'to' => $today);
-		        }
+				if ($orderBy == 'popularityMonth') {
+					$oneMonthAgo = date('Ymd', strtotime('-1 month'));
+					$today = date('Ymd');
+					$filter[STATISTICS_DIMENSION_DAY] = array('from' => $oneMonthAgo, 'to' => $today);
+				}
 				$rawReport = $application->getMetrics($metricType, $column, $filter);
 				foreach ($rawReport as $row) {
 					$unorderedResults[$row['submission_id']]['metric'] = (int)$row['metric'];
 				}
 			}
 		}
+
+		$i=0; // Used to prevent ties from clobbering each other
 		foreach ($unorderedResults as $submissionId => $data) {
 			// Exclude unwanted IDs.
 			if (in_array($submissionId, $exclude)) continue;
 
- 			$orderKey = null;
 			switch ($orderBy) {
 				case 'authors':
 					$authors = $authorDao->getBySubmissionId($submissionId);
@@ -92,7 +94,7 @@ class ArticleSearch extends SubmissionSearch {
 
 				case 'title':
 					$submission = $articleDao->getById($submissionId);
-					$orderKey = $submission->getLocalizedTitle();
+					$orderKey = $submission->getLocalizedTitle(null, false);
 					break;
 
 				case 'journalTitle':
@@ -108,8 +110,8 @@ class ArticleSearch extends SubmissionSearch {
 					$orderKey = $data[$orderBy];
 					break;
 
-		        case 'popularityAll':
-		        case 'popularityMonth':
+				case 'popularityAll':
+				case 'popularityMonth':
 					$orderKey = (isset($data['metric']) ? $data['metric'] : 0);
 					break;
 
@@ -119,7 +121,7 @@ class ArticleSearch extends SubmissionSearch {
 			if (!isset($orderedResults[$orderKey])) {
 				$orderedResults[$orderKey] = array();
 			}
-			$orderedResults[$orderKey][$data['score']] = $submissionId;
+			$orderedResults[$orderKey][$data['score'] + $i++] = $submissionId;
 		}
 
 		// Order the results by primary order.
@@ -159,7 +161,6 @@ class ArticleSearch extends SubmissionSearch {
 			'authors' => $request->getUserVar('authors'),
 			'title' => $request->getUserVar('title'),
 			'galleyFullText' => $request->getUserVar('galleyFullText'),
-			'suppFiles' => $request->getUserVar('suppFiles'),
 			'discipline' => $request->getUserVar('discipline'),
 			'subject' => $request->getUserVar('subject'),
 			'type' => $request->getUserVar('type'),
@@ -299,11 +300,11 @@ class ArticleSearch extends SubmissionSearch {
 	}
 
 	/**
-	* Identify similarity terms for a given submission.
-	* @param $submissionId integer
-	* @return null|array An array of string keywords or null
-	* if some kind of error occurred.
-	*/
+	 * Identify similarity terms for a given submission.
+	 * @param $submissionId integer
+	 * @return null|array An array of string keywords or null
+	 * if some kind of error occurred.
+	 */
 	function getSimilarityTerms($submissionId) {
 		// Check whether a search plugin provides terms for a similarity search.
 		$searchTerms = array();
@@ -333,7 +334,6 @@ class ArticleSearch extends SubmissionSearch {
 			SUBMISSION_SEARCH_TITLE => 'title',
 			SUBMISSION_SEARCH_ABSTRACT => 'abstract',
 			SUBMISSION_SEARCH_GALLEY_FILE => 'galleyFullText',
-			SUBMISSION_SEARCH_SUPPLEMENTARY_FILE => 'suppFiles',
 			SUBMISSION_SEARCH_DISCIPLINE => 'discipline',
 			SUBMISSION_SEARCH_SUBJECT => 'subject',
 			SUBMISSION_SEARCH_TYPE => 'type',
@@ -357,8 +357,8 @@ class ArticleSearch extends SubmissionSearch {
 		$application = PKPApplication::getApplication();
 		$metricType = $application->getDefaultMetricType();
 		if (!is_null($metricType)) {
-        	$resultSetOrderingOptions['popularityAll'] = __('search.results.orderBy.popularityAll');
-        	$resultSetOrderingOptions['popularityMonth'] = __('search.results.orderBy.popularityMonth');
+			$resultSetOrderingOptions['popularityAll'] = __('search.results.orderBy.popularityAll');
+			$resultSetOrderingOptions['popularityMonth'] = __('search.results.orderBy.popularityMonth');
 		}
 
 		// Only show the "journal title" option if we have several journals.
@@ -368,7 +368,7 @@ class ArticleSearch extends SubmissionSearch {
 		}
 
 		// Let plugins mangle the search ordering options.
-		$results = HookRegistry::call(
+		HookRegistry::call(
 			'SubmissionSearch::getResultSetOrderingOptions',
 			array($journal, &$resultSetOrderingOptions)
 		);

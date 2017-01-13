@@ -3,7 +3,8 @@
 /**
  * @file pages/reviewer/ReviewerHandler.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class ReviewerHandler
@@ -18,8 +19,8 @@ class ReviewerHandler extends PKPReviewerHandler {
 	/**
 	 * Constructor
 	 */
-	function ReviewerHandler() {
-		parent::PKPReviewerHandler();
+	function __construct() {
+		parent::__construct();
 		$this->addRoleAssignment(
 			ROLE_ID_REVIEWER, array(
 				'submission', 'step', 'saveStep',
@@ -37,7 +38,7 @@ class ReviewerHandler extends PKPReviewerHandler {
 			$this->_validateAccessKey($request);
 		}
 
-		import('classes.security.authorization.SubmissionAccessPolicy');
+		import('lib.pkp.classes.security.authorization.SubmissionAccessPolicy');
 		$this->addPolicy(new SubmissionAccessPolicy($request, $args, $roleAssignments));
 
 
@@ -82,9 +83,9 @@ class ReviewerHandler extends PKPReviewerHandler {
 		if (!$user) { return false; }
 
 		// Register the user object in the session
-		import('lib.pkp.classes.security.PKPValidation');
+		import('lib.pkp.classes.security.Validation');
 		$reason = null;
-		if (PKPValidation::registerUserSession($user, $reason)) {
+		if (Validation::registerUserSession($user, $reason)) {
 			$this->submission = $reviewerSubmission;
 			$this->user = $user;
 		}

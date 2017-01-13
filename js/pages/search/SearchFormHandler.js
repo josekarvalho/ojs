@@ -4,7 +4,8 @@
 /**
  * @file js/pages/search/SearchFormHandler.js
  *
- * Copyright (c) 2000-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2000-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class SearchFormHandler
@@ -39,7 +40,6 @@
 			// Auto-complete is switched off.
 			$queryInput = $form.find('input[name="query"]');
 		}
-		$queryInput.focus().select();
 
 		// Configure the form handler.
 		options.submitHandler = this.submitForm;
@@ -185,7 +185,7 @@
 		// of them contains a keyword longer than "minLen".
 		formFields = [
 			'query', 'authors', 'title', 'abstract', 'discipline', 'subject',
-			'type', 'coverage', 'indexTerms', 'suppFiles', 'galleyFullText'
+			'type', 'coverage', 'indexTerms', 'galleyFullText'
 		];
 		for (i = 0, numFields = formFields.length; i < numFields; i++) {
 			fieldLength = $form.find('input[name="' + formFields[i] + '"]')

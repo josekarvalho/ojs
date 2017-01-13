@@ -3,7 +3,8 @@
 /**
  * @file classes/oai/ojs/OAIDAO.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class OAIDAO
@@ -34,8 +35,8 @@ class OAIDAO extends PKPOAIDAO {
  	/**
 	 * Constructor.
 	 */
-	function OAIDAO() {
-		parent::PKPOAIDAO();
+	function __construct() {
+		parent::__construct();
 		$this->journalDao = DAORegistry::getDAO('JournalDAO');
 		$this->sectionDao = DAORegistry::getDAO('SectionDAO');
 		$this->publishedArticleDao = DAORegistry::getDAO('PublishedArticleDAO');
@@ -106,7 +107,7 @@ class OAIDAO extends PKPOAIDAO {
 		if (isset($journalId)) {
 			$journals = array($this->journalDao->getById($journalId));
 		} else {
-			$journals = $this->journalDao->getAll();
+			$journals = $this->journalDao->getAll(true);
 			$journals = $journals->toArray();
 		}
 
@@ -148,8 +149,6 @@ class OAIDAO extends PKPOAIDAO {
 	 * @return array (int, int)
 	 */
 	function getSetJournalSectionId($journalSpec, $sectionSpec, $restrictJournalId = null) {
-		$journalId = null;
-
 		$journal =& $this->journalDao->getByPath($journalSpec);
 		if (!isset($journal) || (isset($restrictJournalId) && $journal->getId() != $restrictJournalId)) {
 			return array(0, 0);
@@ -210,7 +209,7 @@ class OAIDAO extends PKPOAIDAO {
 	 * @see lib/pkp/classes/oai/PKPOAIDAO::getAccessibleRecordWhereClause()
 	 */
 	function getAccessibleRecordWhereClause() {
-		return 'WHERE ((s.section_id IS NOT NULL AND i.published = 1 AND j.enabled = 1 AND a.status <> ' . STATUS_ARCHIVED . ') OR dot.data_object_id IS NOT NULL)';
+		return 'WHERE ((s.section_id IS NOT NULL AND i.published = 1 AND j.enabled = 1 AND a.status <> ' . STATUS_DECLINED . ') OR dot.data_object_id IS NOT NULL)';
 	}
 
 	/**
@@ -225,7 +224,7 @@ class OAIDAO extends PKPOAIDAO {
 	/**
 	 * @see lib/pkp/classes/oai/PKPOAIDAO::setOAIData()
 	 */
-	function &setOAIData(&$record, $row, $isRecord = true) {
+	function setOAIData($record, $row, $isRecord = true) {
 		$journal = $this->getJournal($row['journal_id']);
 		$section = $this->getSection($row['section_id']);
 		$articleId = $row['submission_id'];

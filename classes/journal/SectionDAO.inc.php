@@ -3,7 +3,8 @@
 /**
  * @file classes/journal/SectionDAO.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class SectionDAO
@@ -14,9 +15,14 @@
  */
 
 import ('classes.journal.Section');
+import ('lib.pkp.classes.context.PKPSectionDAO');
 
-class SectionDAO extends DAO {
+class SectionDAO extends PKPSectionDAO {
 	var $cache;
+
+	function __construct() {
+		parent::__construct();
+	}
 
 	function _cacheMiss($cache, $id) {
 		$section = $this->getById($id, null, false);
@@ -57,7 +63,7 @@ class SectionDAO extends DAO {
 
 		$returner = null;
 		if ($result->RecordCount() != 0) {
-			$returner = $this->_returnSectionFromRow($result->GetRowAssoc(false));
+			$returner = $this->_fromRow($result->GetRowAssoc(false));
 		}
 		$result->Close();
 
@@ -89,7 +95,7 @@ class SectionDAO extends DAO {
 
 		$returner = null;
 		if ($result->RecordCount() != 0) {
-			$returner = $this->_returnSectionFromRow($result->GetRowAssoc(false));
+			$returner = $this->_fromRow($result->GetRowAssoc(false));
 		}
 
 		$result->Close();
@@ -120,7 +126,7 @@ class SectionDAO extends DAO {
 
 		$returner = null;
 		if ($result->RecordCount() != 0) {
-			$returner = $this->_returnSectionFromRow($result->GetRowAssoc(false));
+			$returner = $this->_fromRow($result->GetRowAssoc(false));
 		}
 
 		$result->Close();
@@ -139,25 +145,21 @@ class SectionDAO extends DAO {
 	 * @param $row array
 	 * @return Section
 	 */
-	function _returnSectionFromRow($row) {
-		$section = $this->newDataObject();
+	function _fromRow($row) {
+		$section = parent::_fromRow($row);
+
 		$section->setId($row['section_id']);
 		$section->setJournalId($row['journal_id']);
-		$section->setReviewFormId($row['review_form_id']);
-		$section->setSequence($row['seq']);
 		$section->setMetaIndexed($row['meta_indexed']);
 		$section->setMetaReviewed($row['meta_reviewed']);
 		$section->setAbstractsNotRequired($row['abstracts_not_required']);
-		$section->setEditorRestricted($row['editor_restricted']);
 		$section->setHideTitle($row['hide_title']);
 		$section->setHideAuthor($row['hide_author']);
-		$section->setHideAbout($row['hide_about']);
-		$section->setDisableComments($row['disable_comments']);
 		$section->setAbstractWordCount($row['abstract_word_count']);
 
 		$this->getDataObjectSettings('section_settings', 'section_id', $row['section_id'], $section);
 
-		HookRegistry::call('SectionDAO::_returnSectionFromRow', array(&$section, &$row));
+		HookRegistry::call('SectionDAO::_fromRow', array(&$section, &$row));
 
 		return $section;
 	}
@@ -167,7 +169,10 @@ class SectionDAO extends DAO {
 	 * @return array
 	 */
 	function getLocaleFieldNames() {
-		return array('title', 'abbrev', 'policy', 'identifyType');
+		return array_merge(
+			parent::getLocaleFieldNames(),
+			array('abbrev', 'policy', 'identifyType')
+		);
 	}
 
 	/**
@@ -187,9 +192,9 @@ class SectionDAO extends DAO {
 	function insertObject($section) {
 		$this->update(
 			'INSERT INTO sections
-				(journal_id, review_form_id, seq, meta_indexed, meta_reviewed, abstracts_not_required, editor_restricted, hide_title, hide_author, hide_about, disable_comments, abstract_word_count)
+				(journal_id, review_form_id, seq, meta_indexed, meta_reviewed, abstracts_not_required, editor_restricted, hide_title, hide_author, abstract_word_count)
 				VALUES
-				(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+				(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
 			array(
 				(int)$section->getJournalId(),
 				(int)$section->getReviewFormId(),
@@ -200,8 +205,6 @@ class SectionDAO extends DAO {
 				$section->getEditorRestricted() ? 1 : 0,
 				$section->getHideTitle() ? 1 : 0,
 				$section->getHideAuthor() ? 1 : 0,
-				$section->getHideAbout() ? 1 : 0,
-				$section->getDisableComments() ? 1 : 0,
 				(int) $section->getAbstractWordCount()
 			)
 		);
@@ -227,8 +230,6 @@ class SectionDAO extends DAO {
 					editor_restricted = ?,
 					hide_title = ?,
 					hide_author = ?,
-					hide_about = ?,
-					disable_comments = ?,
 					abstract_word_count = ?
 				WHERE section_id = ?',
 			array(
@@ -240,8 +241,6 @@ class SectionDAO extends DAO {
 				(int)$section->getEditorRestricted(),
 				(int)$section->getHideTitle(),
 				(int)$section->getHideAuthor(),
-				(int)$section->getHideAbout(),
-				(int)$section->getDisableComments(),
 				$this->nullOrInt($section->getAbstractWordCount()),
 				(int)$section->getId()
 			)
@@ -250,21 +249,13 @@ class SectionDAO extends DAO {
 	}
 
 	/**
-	 * Delete a section.
-	 * @param $section Section
-	 */
-	function deleteObject($section) {
-		return $this->deleteById($section->getId(), $section->getJournalId());
-	}
-
-	/**
 	 * Delete a section by ID.
 	 * @param $sectionId int
-	 * @param $journalId int optional
+	 * @param $contextId int optional
 	 */
-	function deleteById($sectionId, $journalId = null) {
-		$sectionEditorsDao = DAORegistry::getDAO('SectionEditorsDAO');
-		$sectionEditorsDao->deleteEditorsBySectionId($sectionId, $journalId);
+	function deleteById($sectionId, $contextId = null) {
+		$subEditorsDao = DAORegistry::getDAO('SubEditorsDAO');
+		$subEditorsDao->deleteBySectionId($sectionId, $contextId);
 
 		// Remove articles from this section
 		$articleDao = DAORegistry::getDAO('ArticleDAO');
@@ -275,7 +266,7 @@ class SectionDAO extends DAO {
 		$publishedArticleDao = DAORegistry::getDAO('PublishedArticleDAO');
 		$publishedArticleDao->deletePublishedArticlesBySectionId($sectionId);
 
-		if (isset($journalId) && !$this->sectionExists($sectionId, $journalId)) return false;
+		if (isset($contextId) && !$this->sectionExists($sectionId, $contextId)) return false;
 		$this->update('DELETE FROM section_settings WHERE section_id = ?', (int) $sectionId);
 		$this->update('DELETE FROM sections WHERE section_id = ?', (int) $sectionId);
 	}
@@ -287,10 +278,7 @@ class SectionDAO extends DAO {
 	 * @param $journalId int
 	 */
 	function deleteByJournalId($journalId) {
-		$sections = $this->getByJournalId($journalId);
-		while ($section = $sections->next()) {
-			$this->deleteObject($section);
-		}
+		$this->deleteByContextId($journalId);
 	}
 
 	/**
@@ -308,7 +296,7 @@ class SectionDAO extends DAO {
 
 		while (!$result->EOF) {
 			$row = $result->GetRowAssoc(false);
-			$section = $this->_returnSectionFromRow($row);
+			$section = $this->_fromRow($row);
 			if (!isset($returner[$row['editor_id']])) {
 				$returner[$row['editor_id']] = array($section);
 			} else {
@@ -335,7 +323,7 @@ class SectionDAO extends DAO {
 		$returner = array();
 		while (!$result->EOF) {
 			$row = $result->GetRowAssoc(false);
-			$returner[] = $this->_returnSectionFromRow($row);
+			$returner[] = $this->_fromRow($row);
 			$result->MoveNext();
 		}
 
@@ -348,12 +336,22 @@ class SectionDAO extends DAO {
 	 * @return DAOResultFactory containing Sections ordered by sequence
 	 */
 	function getByJournalId($journalId, $rangeInfo = null) {
+		return $this->getByContextId($journalId, $rangeInfo);
+	}
+
+	/**
+	 * Retrieve all sections for a journal.
+	 * @param $journalId int Journal ID
+	 * @param $rangeInfo Object
+	 * @return DAOResultFactory containing Sections ordered by sequence
+	 */
+	function getByContextId($journalId, $rangeInfo = null) {
 		$result = $this->retrieveRange(
 			'SELECT * FROM sections WHERE journal_id = ? ORDER BY seq',
 			(int) $journalId, $rangeInfo
 		);
 
-		return new DAOResultFactory($result, $this, '_returnSectionFromRow');
+		return new DAOResultFactory($result, $this, '_fromRow');
 	}
 
 	/**
@@ -366,7 +364,7 @@ class SectionDAO extends DAO {
 			false, $rangeInfo
 		);
 
-		return new DAOResultFactory($result, $this, '_returnSectionFromRow');
+		return new DAOResultFactory($result, $this, '_fromRow');
 	}
 
 	/**
@@ -392,20 +390,13 @@ class SectionDAO extends DAO {
 	 * Retrieve the IDs and titles of the sections for a journal in an associative array.
 	 * @return array
 	 */
-	function &getSectionTitles($journalId, $submittableOnly = false) {
+	function getTitles($journalId, $submittableOnly = false) {
 		$sections = array();
-
 		$sectionsIterator = $this->getByJournalId($journalId);
 		while ($section = $sectionsIterator->next()) {
-			if ($submittableOnly) {
-				if (!$section->getEditorRestricted()) {
-					$sections[$section->getId()] = $section->getLocalizedTitle();
-				}
-			} else {
-				$sections[$section->getId()] = $section->getLocalizedTitle();
-			}
+			if ($submittableOnly && $section->getEditorRestricted()) continue;
+			$sections[$section->getId()] = $section->getLocalizedTitle();
 		}
-
 		return $sections;
 	}
 
@@ -552,18 +543,12 @@ class SectionDAO extends DAO {
 	 * @param $issueId int
 	 */
 	function setDefaultCustomSectionOrders($issueId) {
-		$result = $this->retrieve(
-			'SELECT s.section_id FROM sections s, issues i WHERE i.journal_id = s.journal_id AND i.issue_id = ? ORDER BY seq',
-			(int) $issueId
-		);
-
-		for ($i=1; !$result->EOF; $i++) {
-			list($sectionId) = $result->fields;
-			$this->insertCustomSectionOrder($issueId, $sectionId, $i);
-			$result->MoveNext();
+		$issueSections = $this->getByIssueId($issueId);
+		$i = 1;
+		foreach ($issueSections as $section) {
+			$this->insertCustomSectionOrder($issueId, $section->getId(), $i);
+			$i++;
 		}
-
-		$result->Close();
 	}
 
 	/**
@@ -580,19 +565,18 @@ class SectionDAO extends DAO {
 	}
 
 	/**
-	 * Move a custom issue ordering up or down, resequencing as necessary.
+	 * Update a custom section ordering
 	 * @param $issueId int
 	 * @param $sectionId int
-	 * @param $newPos int The new position (0-based) of this section
-	 * @param $up boolean Whether we're moving the section up or down
+	 * @param $seq int
 	 */
-	function moveCustomSectionOrder($issueId, $sectionId, $newPos, $up) {
+	function updateCustomSectionOrder($issueId, $sectionId, $seq) {
 		$this->update(
-			'UPDATE custom_section_orders SET seq = ? ' . ($up?'-':'+') . ' 0.5 WHERE issue_id = ? AND section_id = ?',
-			array((float) $newPos, (int) $issueId, (int) $sectionId)
+			'UPDATE custom_section_orders SET seq = ? WHERE issue_id = ? AND section_id = ?',
+			array((float) $seq, (int) $issueId, (int) $sectionId)
 		);
-		$this->resequenceCustomSectionOrders($issueId);
 	}
+
 }
 
 ?>

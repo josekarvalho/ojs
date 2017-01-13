@@ -2,7 +2,8 @@
 /**
  * @file classes/security/authorization/OjsPluginAccessPolicy.inc.php
  *
- * Copyright (c) 2000-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2000-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class OjsPluginAccessPolicy
@@ -14,6 +15,7 @@
 import('lib.pkp.classes.security.authorization.PolicySet');
 import('classes.security.authorization.internal.PluginLevelRequiredPolicy');
 import('lib.pkp.classes.security.authorization.internal.PluginRequiredPolicy');
+import('lib.pkp.classes.security.authorization.RoleBasedHandlerOperationPolicy');
 
 define('ACCESS_MODE_MANAGE', 0x01);
 define('ACCESS_MODE_ADMIN', 0x02);
@@ -26,8 +28,8 @@ class OjsPluginAccessPolicy extends PolicySet {
 	 * @param $roleAssignments array
 	 * @param $accessMode int
 	 */
-	function OjsPluginAccessPolicy($request, &$args, $roleAssignments, $accessMode = ACCESS_MODE_ADMIN) {
-		parent::PolicySet();
+	function __construct($request, &$args, $roleAssignments, $accessMode = ACCESS_MODE_ADMIN) {
+		parent::__construct();
 
 		// A valid plugin is required.
 		$this->addPolicy(new PluginRequiredPolicy($request));

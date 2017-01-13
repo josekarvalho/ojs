@@ -1,9 +1,14 @@
 <?php
 
 /**
+ * @defgroup oai_format_nlm
+ */
+
+/**
  * @file plugins/oaiMetadataFormats/nlm/OAIMetadataFormat_NLM.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2013-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class OAIMetadataFormat_NLM
@@ -49,7 +54,8 @@ class OAIMetadataFormat_NLM extends OAIMetadataFormat {
 		$abbreviation = $journal->getLocalizedSetting('abbreviation');
 		$printIssn = $journal->getSetting('printIssn');
 		$onlineIssn = $journal->getSetting('onlineIssn');
-		$primaryLocale = $journal->getPrimaryLocale();
+		$primaryLocale = ($article->getLanguage() != '') ? $article->getLanguage() : $journal->getPrimaryLocale();
+
 		$publisherInstitution = $journal->getSetting('publisherInstitution');
 		$datePublished = $article->getDatePublished();
 		if (!$datePublished) $datePublished = $issue->getDatePublished();
@@ -82,7 +88,7 @@ class OAIMetadataFormat_NLM extends OAIMetadataFormat {
 			"\t\t</journal-meta>\n" .
 			"\t\t<article-meta>\n" .
 			"\t\t\t<article-id pub-id-type=\"other\">" . htmlspecialchars(Core::cleanVar($article->getBestArticleId())) . "</article-id>\n" .
-			(($s = $article->getPubId('doi'))?"\t\t\t<article-id pub-id-type=\"doi\">" . htmlspecialchars(Core::cleanVar($s)) . "</article-id>\n":'') .
+			(($s = $article->getStoredPubId('doi'))?"\t\t\t<article-id pub-id-type=\"doi\">" . htmlspecialchars(Core::cleanVar($s)) . "</article-id>\n":'') .
 			"\t\t\t<article-categories><subj-group subj-group-type=\"heading\"><subject>" . htmlspecialchars(Core::cleanVar($section->getLocalizedTitle())) . "</subject></subj-group></article-categories>\n" .
 			"\t\t\t<title-group>\n" .
 			"\t\t\t\t<article-title>" . htmlspecialchars(Core::cleanVar(strip_tags($article->getLocalizedTitle()))) . "</article-title>\n";
@@ -125,19 +131,19 @@ class OAIMetadataFormat_NLM extends OAIMetadataFormat {
 		$response .=
 			($issue->getShowYear()?"\t\t\t<pub-date pub-type=\"collection\"><year>" . htmlspecialchars(Core::cleanVar($issue->getYear())) . "</year></pub-date>\n":'') .
 			($issue->getShowVolume()?"\t\t\t<volume>" . htmlspecialchars(Core::cleanVar($issue->getVolume())) . "</volume>\n":'') .
-			($issue->getShowNumber()?"\t\t\t<issue seq=\"" . htmlspecialchars(Core::cleanVar(($sectionSeq[$section->getId()]*100) + $article->getSeq())) . "\">" . htmlspecialchars(Core::cleanVar($issue->getNumber())) . "</issue>\n":'') .
+			($issue->getShowNumber()?"\t\t\t<issue seq=\"" . htmlspecialchars(Core::cleanVar(($sectionSeq[$section->getId()]*100) + $article->getSequence())) . "\">" . htmlspecialchars(Core::cleanVar($issue->getNumber())) . "</issue>\n":'') .
 			"\t\t\t<issue-id pub-id-type=\"other\">" . htmlspecialchars(Core::cleanVar($issue->getBestIssueId())) . "</issue-id>\n" .
 			($issue->getShowTitle()?"\t\t\t<issue-title>" . htmlspecialchars(Core::cleanVar($issue->getLocalizedTitle())) . "</issue-title>\n":'');
 
 		// Include page info, if available and parseable.
 		$matches = null;
-		if (String::regexp_match_get('/^[Pp][Pp]?[.]?[ ]?(\d+)$/', $article->getPages(), $matches)) {
+		if (PKPString::regexp_match_get('/^[Pp][Pp]?[.]?[ ]?(\d+)$/', $article->getPages(), $matches)) {
 			$matchedPage = htmlspecialchars(Core::cleanVar($matches[1]));
 			$response .= "\t\t\t\t<fpage>$matchedPage</fpage><lpage>$matchedPage</lpage>\n";
 			$pageCount = 1;
-		} elseif (String::regexp_match_get('/^[Pp][Pp]?[.]?[ ]?(\d+)[ ]?-[ ]?([Pp][Pp]?[.]?[ ]?)?(\d+)$/', $article->getPages(), $matches)) {
+		} elseif (PKPString::regexp_match_get('/^[Pp][Pp]?[.]?[ ]?(\d+)[ ]?(-|–)[ ]?([Pp][Pp]?[.]?[ ]?)?(\d+)$/', $article->getPages(), $matches)) {
 			$matchedPageFrom = htmlspecialchars(Core::cleanVar($matches[1]));
-			$matchedPageTo = htmlspecialchars(Core::cleanVar($matches[3]));
+			$matchedPageTo = htmlspecialchars(Core::cleanVar($matches[4]));
 			$response .=
 				"\t\t\t\t<fpage>$matchedPageFrom</fpage>\n" .
 				"\t\t\t\t<lpage>$matchedPageTo</lpage>\n";
@@ -146,8 +152,11 @@ class OAIMetadataFormat_NLM extends OAIMetadataFormat {
 
 		$response .=
 			"\t\t\t<permissions>\n" .
-			((($s = $journal->getLocalizedSetting('copyrightNotice')) != '')?"\t\t\t\t<copyright-statement>" . htmlspecialchars(Core::cleanVar($s)) . "</copyright-statement>\n":'') .
-			($datePublished?"\t\t\t\t<copyright-year>" . strftime('%Y', $datePublished) . "</copyright-year>\n":'') .
+			"\t\t\t\t<copyright-statement>" . htmlspecialchars(__('submission.copyrightStatement', array('copyrightYear' => $article->getCopyrightYear(), 'copyrightHolder' => $article->getLocalizedCopyrightHolder()))) . "</copyright-statement>\n" .
+			($datePublished?"\t\t\t\t<copyright-year>" . $article->getCopyrightYear() . "</copyright-year>\n":'') .
+			"\t\t\t\t<license xlink:href=\"" . $article->getLicenseURL() . "\">\n" .
+			(($s = Application::getCCLicenseBadge($article->getLicenseURL()))?"\t\t\t\t\t<license-p>" . strip_tags($s) . "</license-p>\n":'') .
+			"\t\t\t\t</license>\n" .
 			"\t\t\t</permissions>\n" .
 			"\t\t\t<self-uri xlink:href=\"" . htmlspecialchars(Core::cleanVar(Request::url($journal->getPath(), 'article', 'view', $article->getBestArticleId()))) . "\" />\n";
 
@@ -160,7 +169,7 @@ class OAIMetadataFormat_NLM extends OAIMetadataFormat {
 		$abstract = htmlspecialchars(Core::cleanVar(strip_tags($article->getLocalizedAbstract())));
 		if (!empty($abstract)) {
 			$abstract = "<p>$abstract</p>";
-			// $abstract = '<p>' . String::regexp_replace('/\n+/', '</p><p>', $abstract) . '</p>';
+			// $abstract = '<p>' . PKPString::regexp_replace('/\n+/', '</p><p>', $abstract) . '</p>';
 			$response .= "\t\t\t<abstract xml:lang=\"" . strtoupper(substr($primaryLocale, 0, 2)) . "\">$abstract</abstract>\n";
 		}
 		if (is_array($article->getAbstract(null))) foreach ($article->getAbstract(null) as $locale => $abstract) {
@@ -168,7 +177,7 @@ class OAIMetadataFormat_NLM extends OAIMetadataFormat {
 			$abstract = htmlspecialchars(Core::cleanVar(strip_tags($abstract)));
 			if (empty($abstract)) continue;
 			$abstract = "<p>$abstract</p>";
-			//$abstract = '<p>' . String::regexp_replace('/\n+/', '</p><p>', $abstract) . '</p>';
+			//$abstract = '<p>' . PKPString::regexp_replace('/\n+/', '</p><p>', $abstract) . '</p>';
 			$response .= "\t\t\t<abstract-trans xml:lang=\"" . strtoupper(substr($locale, 0, 2)) . "\">$abstract</abstract-trans>\n";
 		}
 
@@ -194,7 +203,7 @@ class OAIMetadataFormat_NLM extends OAIMetadataFormat {
 		$galleys = $article->getGalleys();
 
 		// Give precedence to HTML galleys, as they're quickest to parse
-		usort($galleys, create_function('$a, $b', 'return $a->isHtmlGalley()?-1:1;'));
+		usort($galleys, create_function('$a, $b', 'return $a->getFileType()==\'text/html\')?-1:1;'));
 
 		// Determine any access limitations. If there are, do not
 		// provide the full-text.
@@ -210,7 +219,7 @@ class OAIMetadataFormat_NLM extends OAIMetadataFormat {
 				$parser->close();
 			}
 
-			if ($galley->isHtmlGalley()) $text = strip_tags($text);
+			if ($galley->getFileType()=='text/html') $text = strip_tags($text);
 			unset($galley);
 			// Use the first parseable galley.
 			if (!empty($text)) break;
@@ -249,7 +258,7 @@ class OAIMetadataFormat_NLM extends OAIMetadataFormat {
 
 		$response = '';
 		$roleDao = DAORegistry::getDAO('RoleDAO');
-		$roleMap = array(ROLE_ID_EDITOR => 'editor', ROLE_ID_SECTION_EDITOR => 'secteditor', ROLE_ID_MANAGER => 'jmanager');
+		$roleMap = array(ROLE_ID_SECTION_EDITOR => 'secteditor', ROLE_ID_MANAGER => 'editor');
 		foreach ($roleMap as $roleId => $roleName) {
 			$users = $roleDao->getUsersByRoleId($roleId, $journalId);
 			$isFirst = true;

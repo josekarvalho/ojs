@@ -1,7 +1,8 @@
 {**
  * templates/payments/payMethodSettingsForm.tpl
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * Form to edit payment settings.
@@ -39,6 +40,7 @@ function changePaymentMethod() {
 	{rdelim});
 </script>
 <form class="pkp_form" method="post" id="paymentSettingsForm" action="{url op="savePayMethodSettings"}">
+{csrf}
 
 <p>{translate key="manager.payment.paymentMethod.description"}</p>
 

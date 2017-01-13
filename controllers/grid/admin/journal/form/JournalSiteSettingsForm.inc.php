@@ -3,7 +3,8 @@
 /**
  * @file controllers/grid/admin/journal/form/JournalSiteSettingsForm.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class JournalSiteSettingsForm
@@ -19,8 +20,8 @@ class JournalSiteSettingsForm extends ContextSiteSettingsForm {
 	 * Constructor.
 	 * @param $contextId omit for a new journal
 	 */
-	function JournalSiteSettingsForm($contextId = null) {
-		parent::ContextSiteSettingsForm($contextId);
+	function __construct($contextId = null) {
+		parent::__construct($contextId);
 	}
 
 	/**
@@ -41,6 +42,7 @@ class JournalSiteSettingsForm extends ContextSiteSettingsForm {
 	 * @param $request PKPRequest
 	 */
 	function execute($request) {
+		$site = $request->getSite();
 		$journalDao = DAORegistry::getDAO('JournalDAO');
 
 		if (isset($this->contextId)) {
@@ -66,7 +68,6 @@ class JournalSiteSettingsForm extends ContextSiteSettingsForm {
 			$section = null;
 		} else {
 			$isNewJournal = true;
-			$site = $request->getSite();
 
 			// Give it a default primary locale
 			$journal->setPrimaryLocale ($site->getPrimaryLocale());
@@ -102,13 +103,10 @@ class JournalSiteSettingsForm extends ContextSiteSettingsForm {
 				'indexUrl' => $request->getIndexUrl(),
 				'journalPath' => $this->getData('path'),
 				'primaryLocale' => $site->getPrimaryLocale(),
-				'journalName' => $names[$site->getPrimaryLocale()]
+				'contextName' => $names[$site->getPrimaryLocale()],
+				'ldelim' => '{', // Used to add variables to settings without translating now
+				'rdelim' => '}',
 			));
-
-			// Install the default RT versions.
-			import('classes.rt.ojs.JournalRTAdmin');
-			$journalRtAdmin = new JournalRTAdmin($journalId);
-			$journalRtAdmin->restoreVersions(false);
 
 			// Create a default "Articles" section
 			$sectionDao = DAORegistry::getDAO('SectionDAO');

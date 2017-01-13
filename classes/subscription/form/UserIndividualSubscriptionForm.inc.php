@@ -3,7 +3,8 @@
 /**
  * @file classes/subscription/form/UserIndividualSubscriptionForm.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class UserIndividualSubscriptionForm
@@ -33,8 +34,8 @@ class UserIndividualSubscriptionForm extends Form {
 	 * @param $userId int
 	 * @param $subscriptionId int
 	 */
-	function UserIndividualSubscriptionForm($request, $userId = null, $subscriptionId = null) {
-		parent::Form('subscription/userIndividualSubscriptionForm.tpl');
+	function __construct($request, $userId = null, $subscriptionId = null) {
+		parent::__construct('subscription/userIndividualSubscriptionForm.tpl');
 
 		$this->userId = isset($userId) ? (int) $userId : null;
 		$this->subscription = null;
@@ -66,8 +67,8 @@ class UserIndividualSubscriptionForm extends Form {
 			$this->addCheck(new FormValidatorCustom($this, 'userId', 'required', 'user.subscriptions.form.subscriptionExists', create_function('$userId, $journalId, $subscriptionId', '$subscriptionDao = DAORegistry::getDAO(\'IndividualSubscriptionDAO\'); $checkId = $subscriptionDao->getSubscriptionIdByUser($userId, $journalId); return ($checkId == 0 || $checkId == $subscriptionId) ? true : false;'), array($journalId, $subscriptionId)));
 		}
 
-		// Form was POSTed
 		$this->addCheck(new FormValidatorPost($this));
+		$this->addCheck(new FormValidatorCSRF($this));
 	}
 
 	/**

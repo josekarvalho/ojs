@@ -3,7 +3,8 @@
 /**
  * @file classes/issue/IssueAction.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class IssueAction
@@ -18,7 +19,7 @@ class IssueAction {
 	/**
 	 * Constructor.
 	 */
-	function IssueAction() {
+	function __construct() {
 	}
 
 	/**
@@ -87,12 +88,10 @@ class IssueAction {
 			$journalId = $journal->getId();
 			$userId = $user->getId();
 
-			if (Validation::isAuthor($journalId)) {
-				if ($article && $article->getUserId() == $userId) return true;
-				$publishedArticleDao = DAORegistry::getDAO('PublishedArticleDAO');
-				if ($article) $publishedArticle =& $publishedArticleDao->getPublishedArticleByArticleId($article->getId(), null, true);
-				if (isset($publishedArticle) && $publishedArticle && $publishedArticle->getUserId() == $userId) return true;
-			}
+			$stageAssignmentDao = DAORegistry::getDAO('StageAssignmentDAO');
+			$stageAssignments = $stageAssignmentDao->getBySubmissionAndRoleId($article->getId(), ROLE_ID_AUTHOR, null, $userId);
+			$stageAssignment = $stageAssignments->next();
+			if ($stageAssignment) return true;
 		}
 		return false;
 	}
@@ -116,10 +115,10 @@ class IssueAction {
 		$user = Request::getUser();
 		$subscriptionDao = DAORegistry::getDAO('IndividualSubscriptionDAO');
 		$publishedArticleDao = DAORegistry::getDAO('PublishedArticleDAO');
-		$publishedArticle =& $publishedArticleDao->getPublishedArticleByArticleId($articleId, null, true);
+		$publishedArticle = $publishedArticleDao->getPublishedArticleByArticleId($articleId, null, true);
 		$result = false;
 		if (isset($user) && isset($journal)) {
-			if ($this->allowedPrePublicationAccess($journal, $publishedArticle)) {
+			if ($publishedArticle && $this->allowedPrePublicationAccess($journal, $publishedArticle)) {
 				 $result = true;
 			} else {
 				$result = $subscriptionDao->isValidIndividualSubscription($user->getId(), $journal->getId());
@@ -182,39 +181,6 @@ class IssueAction {
 	}
 
 	/**
-	 * builds the issue options pulldown for published and unpublished issues
-	 * @param $current bool retrieve current or not
-	 * @param $published bool retrieve published or non-published issues
-	 */
-	function getIssueOptions() {
-		$issueOptions = array();
-
-		$journal = Request::getJournal();
-		$journalId = $journal->getId();
-
-		$issueDao = DAORegistry::getDAO('IssueDAO');
-
-		$issueOptions['-100'] =  '------    ' . __('editor.issues.futureIssues') . '    ------';
-		$issueIterator = $issueDao->getUnpublishedIssues($journalId);
-		while ($issue = $issueIterator->next()) {
-			$issueOptions[$issue->getId()] = $issue->getIssueIdentification();
-		}
-		$issueOptions['-101'] = '------    ' . __('editor.issues.currentIssue') . '    ------';
-		$issuesIterator = $issueDao->getPublishedIssues($journalId);
-		$issues = $issuesIterator->toArray();
-		if (isset($issues[0]) && $issues[0]->getCurrent()) {
-			$issueOptions[$issues[0]->getId()] = $issues[0]->getIssueIdentification();
-			array_shift($issues);
-		}
-		$issueOptions['-102'] = '------    ' . __('editor.issues.backIssues') . '    ------';
-		foreach ($issues as $issue) {
-			$issueOptions[$issue->getId()] = $issue->getIssueIdentification();
-		}
-
-		return $issueOptions;
-	}
-
-	/**
 	 * Checks if this user is granted access to pre-publication galleys based on role
 	 * based on their roles in the journal (i.e. Manager, Editor, etc).
 	 * @param $journal object
@@ -229,7 +195,6 @@ class IssueAction {
 			$userId = $user->getId();
 			$subscriptionAssumedRoles = array(
 				ROLE_ID_MANAGER,
-				ROLE_ID_EDITOR,
 				ROLE_ID_SECTION_EDITOR,
 				ROLE_ID_ASSISTANT,
 				ROLE_ID_SUBSCRIPTION_MANAGER

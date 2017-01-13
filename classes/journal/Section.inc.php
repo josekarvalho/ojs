@@ -3,7 +3,8 @@
 /**
  * @file classes/journal/Section.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class Section
@@ -20,8 +21,8 @@ class Section extends PKPSection {
 	/**
 	 * Constructor.
 	 */
-	function Section() {
-		parent::PKPSection();
+	function __construct() {
+		parent::__construct();
 	}
 
 	/**
@@ -51,22 +52,6 @@ class Section extends PKPSection {
 	 */
 	function setJournalId($journalId) {
 		return $this->setContextId($journalId);
-	}
-
-	/**
-	 * Get ID of primary review form.
-	 * @return int
-	 */
-	function getReviewFormId() {
-		return $this->getData('reviewFormId');
-	}
-
-	/**
-	 * Set ID of primary review form.
-	 * @param $reviewFormId int
-	 */
-	function setReviewFormId($reviewFormId) {
-		return $this->setData('reviewFormId', $reviewFormId);
 	}
 
 	/**
@@ -101,22 +86,6 @@ class Section extends PKPSection {
 	 */
 	function setAbstractWordCount($wordCount) {
 		return $this->setData('wordCount', $wordCount);
-	}
-
-	/**
-	 * Get sequence of section.
-	 * @return float
-	 */
-	function getSequence() {
-		return $this->getData('sequence');
-	}
-
-	/**
-	 * Set sequence of section.
-	 * @param $sequence float
-	 */
-	function setSequence($sequence) {
-		return $this->setData('sequence', $sequence);
 	}
 
 	/**
@@ -223,38 +192,6 @@ class Section extends PKPSection {
 	 */
 	function setHideAuthor($hideAuthor) {
 		return $this->setData('hideAuthor', $hideAuthor);
-	}
-
-	/**
-	 * Return boolean indicating if title should be hidden in About.
-	 * @return boolean
-	 */
-	function getHideAbout() {
-		return $this->getData('hideAbout');
-	}
-
-	/**
-	 * Set if title should be hidden in About.
-	 * @param $hideAbout boolean
-	 */
-	function setHideAbout($hideAbout) {
-		return $this->setData('hideAbout', $hideAbout);
-	}
-
-	/**
-	 * Return boolean indicating if RT comments should be disabled.
-	 * @return boolean
-	 */
-	function getDisableComments() {
-		return $this->getData('disableComments');
-	}
-
-	/**
-	 * Set if RT comments should be disabled.
-	 * @param $disableComments boolean
-	 */
-	function setDisableComments($disableComments) {
-		return $this->setData('disableComments', $disableComments);
 	}
 
 	/**

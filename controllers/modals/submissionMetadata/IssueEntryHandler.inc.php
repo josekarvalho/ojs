@@ -3,7 +3,8 @@
 /**
  * @file controllers/modals/submissionMetadata/IssueEntryHandler.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class IssueEntryHandler
@@ -23,8 +24,8 @@ class IssueEntryHandler extends PublicationEntryHandler {
 	/**
 	 * Constructor.
 	 */
-	function IssueEntryHandler() {
-		parent::PublicationEntryHandler();
+	function __construct() {
+		parent::__construct();
 	}
 
 	//
@@ -34,6 +35,7 @@ class IssueEntryHandler extends PublicationEntryHandler {
 	 * Display the tabs index page.
 	 * @param $args array
 	 * @param $request PKPRequest
+	 * @return JSONMessage JSON object
 	 */
 	function fetch($args, $request) {
 		parent::fetch($args, $request);
@@ -67,21 +69,19 @@ class IssueEntryHandler extends PublicationEntryHandler {
 	 * for this submission.
 	 * @param $args array
 	 * @param $request Request
+	 * @return JSONMessage JSON object
 	 */
 	function fetchFormatInfo($args, $request) {
 		$submission = $this->getSubmission();
-		$json = new JSONMessage();
-
 		$galleyDao = DAORegistry::getDAO('ArticleGalleyDAO');
 		$galleys = $galleyDao->getBySubmissionId($submission->getId());
 		$formats = array();
 		while ($galley = $galleys->next()) {
 			$formats[$galley->getId()] = $galley->getLocalizedName();
 		}
-		$json->setStatus(true);
-		$json->setContent(true);
+		$json = new JSONMessage(true, true);
 		$json->setAdditionalAttributes(array('formats' => $formats));
-		return $json->getString();
+		return $json;
 	}
 }
 

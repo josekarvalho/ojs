@@ -3,7 +3,8 @@
 /**
  * @file tests/plugins/importexport/PubObjectCacheTest.php
  *
- * Copyright (c) 2000-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2000-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class PubObjectCacheTest
@@ -78,7 +79,7 @@ class PubObjectCacheTest extends PKPTestCase {
 
 		$articleGalley = new ArticleGalley();
 		$articleGalley->setId('3');
-		$articleGalley->setArticleId($article->getId());
+		$articleGalley->setSubmissionId($article->getId());
 
 		self::assertFalse($cache->isCached('galleys', $articleGalley->getId()));
 		self::assertFalse($cache->isCached('galleysByArticle', $article->getId()));
@@ -116,11 +117,11 @@ class PubObjectCacheTest extends PKPTestCase {
 
 		$articleGalley1 = new ArticleGalley();
 		$articleGalley1->setId('3');
-		$articleGalley1->setArticleId($article->getId());
+		$articleGalley1->setSubmissionId($article->getId());
 
 		$articleGalley2 = new ArticleGalley();
 		$articleGalley2->setId('4');
-		$articleGalley2->setArticleId($article->getId());
+		$articleGalley2->setSubmissionId($article->getId());
 
 		// Add galleys in the wrong order.
 		$cache->add($articleGalley2, $article);

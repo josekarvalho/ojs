@@ -3,7 +3,8 @@
 /**
  * @file tools/poToCurrencies.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class poToCurrencies
@@ -27,11 +28,10 @@ class poToCurrencies extends CommandLineTool {
 	/**
 	 * Constructor
 	 */
-	function poToCurrencies($argv = array()) {
-		parent::CommandLineTool($argv);
+	function __construct($argv = array()) {
+		parent::__construct($argv);
 
-		$toolName = array_shift($argv);
-
+		array_shift($argv); // Shift tool name off the top
 		$this->locale = array_shift($argv);
 		$this->translationFile = array_shift($argv);
 
@@ -76,8 +76,6 @@ class poToCurrencies extends CommandLineTool {
 		$outputMap = array();
 		foreach ($currencies as $currency) {
 			$english = $currency->getName();
-			$codeAlpha = $currency->getCodeAlpha();
-			$codeNumeric = $currency->getCodeNumeric();
 
 			if (!isset($translationMap[$english])) {
 				echo "WARNING: Unknown currency \"$english\"! Using English as default.\n";
@@ -97,7 +95,8 @@ class poToCurrencies extends CommandLineTool {
 <!--
   * currencies.xml
   *
-  * Copyright (c) 2003-2013 John Willinsky
+  * Copyright (c) 2003-2016 Simon Fraser University Library
+  * Copyright (c) 2003-2016 John Willinsky
   * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
   *
   * Localized list of currencies.

@@ -2,7 +2,8 @@
 /**
  * @file classes/security/authorization/OjsIssueGalleyRequiredPolicy.inc.php
  *
- * Copyright (c) 2000-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2000-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class OjsIssueGalleyRequiredPolicy
@@ -20,8 +21,8 @@ class OjsIssueGalleyRequiredPolicy extends DataObjectRequiredPolicy {
 	 * @param $args array request parameters
 	 * @param $operations array
 	 */
-	function OjsIssueGalleyRequiredPolicy($request, &$args, $operations = null) {
-		parent::DataObjectRequiredPolicy($request, $args, 'issueGalleyId', 'user.authorization.invalidIssueGalley', $operations);
+	function __construct($request, &$args, $operations = null) {
+		parent::__construct($request, $args, 'issueGalleyId', 'user.authorization.invalidIssueGalley', $operations);
 	}
 
 	//

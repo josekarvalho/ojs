@@ -3,7 +3,8 @@
 /**
  * @file classes/handler/Handler.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class Handler
@@ -12,33 +13,14 @@
  * @brief Base request handler application class
  */
 
-
 import('lib.pkp.classes.handler.PKPHandler');
 
 class Handler extends PKPHandler {
-	function Handler() {
-		parent::PKPHandler();
-	}
-
 	/**
-	 * Get the iterator of working contexts.
-	 * @param $request PKPRequest
-	 * @return ItemIterator
+	 * Constructor
 	 */
-	function getWorkingContexts($request) {
-		if (defined('SESSION_DISABLE_INIT') || !Config::getVar('general', 'installed')) {
-			return null;
-		}
-
-		// Check for multiple journals.
-		$journalDao = DAORegistry::getDAO('JournalDAO');
-
-		$user = $request->getUser();
-		if (is_a($user, 'User')) {
-			return $journalDao->getAll();
-		} else {
-			return $journalDao->getAll(true); // Enabled only
-		}
+	function __construct() {
+		parent::__construct();
 	}
 
 	/**
@@ -53,12 +35,11 @@ class Handler extends PKPHandler {
 		// Get the requested path.
 		$router = $request->getRouter();
 		$requestedPath = $router->getRequestedContextPath($request);
-		$journal = null;
 
 		if ($requestedPath === 'index' || $requestedPath === '') {
 			// No journal requested. Check how many journals the site has.
 			$journalDao = DAORegistry::getDAO('JournalDAO'); /* @var $journalDao JournalDAO */
-			$journals = $journalDao->getAll();
+			$journals = $journalDao->getAll(true);
 			$journalsCount = $journals->getCount();
 			$journal = null;
 			if ($journalsCount === 1) {
@@ -70,7 +51,6 @@ class Handler extends PKPHandler {
 				$journal = $this->getSiteRedirectContext($request);
 			}
 		} else {
-			$contextCount = null;
 			// Return the requested journal.
 			$journal = $router->getContext($request);
 		}
@@ -78,23 +58,6 @@ class Handler extends PKPHandler {
 			return $journal;
 		}
 		return null;
-	}
-
-	/**
-	 * Return the journal that is configured in site redirect setting.
-	 * @param $request Request
-	 * @return mixed Either Journal or null
-	 */
-	function getSiteRedirectContext($request) {
-		$journalDao = DAORegistry::getDAO('JournalDAO'); /* @var $journalDao JournalDAO */
-		$site = $request->getSite();
-		$journal = null;
-		if ($site) {
-			if($site->getRedirect()) {
-				$journal = $journalDao->getById($site->getRedirect());
-			}
-		}
-		return $journal;
 	}
 }
 

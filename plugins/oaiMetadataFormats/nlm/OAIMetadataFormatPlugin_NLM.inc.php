@@ -3,7 +3,8 @@
 /**
  * @file plugins/oaiMetadataFormats/nlm/OAIMetadataFormatPlugin_NLM.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class OAIMetadataFormatPlugin_NLM
@@ -37,15 +38,15 @@ class OAIMetadataFormatPlugin_NLM extends OAIMetadataFormatPlugin {
 		return 'OAIMetadataFormat_NLM';
 	}
 
-	function getMetadataPrefix() {
+	static function getMetadataPrefix() {
 		return 'nlm';
 	}
 
-	function getSchema() {
+	static function getSchema() {
 		return 'http://dtd.nlm.nih.gov/publishing/2.3/xsd/journalpublishing.xsd';
 	}
 
-	function getNamespace() {
+	static function getNamespace() {
 		return 'http://td.nlm.nih.gov/publishing/2.3';
 	}
 }

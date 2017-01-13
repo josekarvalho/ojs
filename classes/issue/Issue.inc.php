@@ -8,7 +8,8 @@
 /**
  * @file classes/issue/Issue.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class Issue
@@ -258,33 +259,6 @@ class Issue extends DataObject {
 	}
 
 	/**
-	 * Get a public ID for this issue.
-	 * @param $pubIdType string One of the NLM pub-id-type values or
-	 * 'other::something' if not part of the official NLM list
-	 * (see <http://dtd.nlm.nih.gov/publishing/tag-library/n-4zh0.html>).
-	 * @param $preview boolean If true, generate a non-persisted preview only.
-	 */
-	function getPubId($pubIdType, $preview = false) {
-		// FIXME: Move publisher-id to PID plug-in.
-		if ($pubIdType === 'publisher-id') {
-			$pubId = $this->getStoredPubId($pubIdType);
-			return ($pubId ? $pubId : null);
-		}
-
-		$pubIdPlugins = PluginRegistry::loadCategory('pubIds', true, $this->getJournalId());
-		foreach ($pubIdPlugins as $pubIdPlugin) {
-			if ($pubIdPlugin->getPubIdType() === $pubIdType) {
-				// If we already have an assigned ID, use it.
-				$storedId = $this->getStoredPubId($pubIdType);
-				if (!empty($storedId)) return $storedId;
-
-				return $pubIdPlugin->getPubId($this, $preview);
-			}
-		}
-		return null;
-	}
-
-	/**
 	 * Get stored public ID of the issue.
 	 * @param $pubIdType string One of the NLM pub-id-type values or
 	 * 'other::something' if not part of the official NLM list
@@ -371,11 +345,11 @@ class Issue extends DataObject {
 	}
 
 	/**
-	 * Get the localized issue cover filename
+	 * Get the localized issue cover image file name
 	 * @return string
 	 */
-	function getLocalizedFileName() {
-		return $this->getLocalizedData('fileName');
+	function getLocalizedCoverImage() {
+		return $this->getLocalizedData('coverImage');
 	}
 
 	/**
@@ -383,103 +357,25 @@ class Issue extends DataObject {
 	 * @param $locale string
 	 * @return string
 	 */
-	function getFileName($locale) {
-		return $this->getData('fileName', $locale);
+	function getCoverImage($locale) {
+		return $this->getData('coverImage', $locale);
 	}
 
 	/**
-	 * set file name
-	 * @param $fileName string
+	 * Set issue cover image file name
+	 * @param $coverImage string
 	 * @param $locale string
 	 */
-	function setFileName($fileName, $locale) {
-		return $this->setData('fileName', $fileName, $locale);
+	function setCoverImage($coverImage, $locale) {
+		return $this->setData('coverImage', $coverImage, $locale);
 	}
 
 	/**
-	 * Get the localized issue cover width
+	 * Get the localized issue cover image alternate text
 	 * @return string
 	 */
-	function getLocalizedWidth() {
-		return $this->getLocalizedData('width');
-	}
-
-	/**
-	 * get width of cover page image
-	 * @param $locale string
-	 * @return string
-	 */
-	function getWidth($locale) {
-		return $this->getData('width', $locale);
-	}
-
-	/**
-	 * set width of cover page image
-	 * @param $locale string
-	 * @param $width int
-	 */
-	function setWidth($width, $locale) {
-		return $this->setData('width', $width, $locale);
-	}
-
-	/**
-	 * Get the localized issue cover height
-	 * @return string
-	 */
-	function getLocalizedHeight() {
-		return $this->getLocalizedData('height');
-	}
-
-	/**
-	 * get height of cover page image
-	 * @param $locale string
-	 * @return string
-	 */
-	function getHeight($locale) {
-		return $this->getData('height', $locale);
-	}
-
-	/**
-	 * set height of cover page image
-	 * @param $locale string
-	 * @param $height int
-	 */
-	function setHeight($height, $locale) {
-		return $this->setData('height', $height, $locale);
-	}
-
-	/**
-	 * Get the localized issue cover filename on the uploader's computer
-	 * @return string
-	 */
-	function getLocalizedOriginalFileName() {
-		return $this->getLocalizedData('originalFileName');
-	}
-
-	/**
-	 * Get original issue cover image file name
-	 * @param $locale string
-	 * @return string
-	 */
-	function getOriginalFileName($locale) {
-		return $this->getData('originalFileName', $locale);
-	}
-
-	/**
-	 * set original file name
-	 * @param $originalFileName string
-	 * @param $locale string
-	 */
-	function setOriginalFileName($originalFileName, $locale) {
-		return $this->setData('originalFileName', $originalFileName, $locale);
-	}
-
-	/**
-	 * Get the localized issue cover alternate text
-	 * @return string
-	 */
-	function getLocalizedCoverPageAltText() {
-		return $this->getLocalizedData('coverPageAltText');
+	function getLocalizedCoverImageAltText() {
+		return $this->getLocalizedData('coverImageAltText');
 	}
 
 	/**
@@ -487,137 +383,36 @@ class Issue extends DataObject {
 	 * @param $locale string
 	 * @return string
 	 */
-	function getCoverPageAltText($locale) {
-		return $this->getData('coverPageAltText', $locale);
+	function getCoverImageAltText($locale) {
+		return $this->getData('coverImageAltText', $locale);
+	}
+
+	/**
+	 * Get a full URL to the localized cover image
+	 *
+	 * @return string
+	 */
+	function getLocalizedCoverImageUrl() {
+		$coverImage = $this->getLocalizedCoverImage();
+		if (!$coverImage) {
+			return '';
+		}
+
+		$request = Application::getRequest();
+
+		import('classes.file.PublicFileManager');
+		$publicFileManager = new PublicFileManager();
+
+		return $request->getBaseUrl() . '/' . $publicFileManager->getJournalFilesPath($this->getJournalId()) . '/' . $coverImage;
 	}
 
 	/**
 	 * Set issue cover image alternate text
-	 * @param $coverPageAltText string
+	 * @param $coverImageAltText string
 	 * @param $locale string
 	 */
-	function setCoverPageAltText($coverPageAltText, $locale) {
-		return $this->setData('coverPageAltText', $coverPageAltText, $locale);
-	}
-
-	/**
-	 * Get the localized issue cover description
-	 * @return string
-	 */
-	function getLocalizedCoverPageDescription() {
-		return $this->getLocalizedData('coverPageDescription');
-	}
-
-	/**
-	 * get cover page description
-	 * @param $locale string
-	 * @return string
-	 */
-	function getCoverPageDescription($locale) {
-		return $this->getData('coverPageDescription', $locale);
-	}
-
-	/**
-	 * set cover page description
-	 * @param $coverPageDescription string
-	 * @param $locale string
-	 */
-	function setCoverPageDescription($coverPageDescription, $locale) {
-		return $this->setData('coverPageDescription', $coverPageDescription, $locale);
-	}
-
-	/**
-	 * Get the localized issue cover enable/disable flag
-	 * @return string
-	 */
-	function getLocalizedShowCoverPage() {
-		return $this->getLocalizedData('showCoverPage');
-	}
-
-	/**
-	 * Get show issue cover image flag
-	 * @param $locale string
-	 * @return int
-	 */
-	function getShowCoverPage($locale) {
-		return $this->getData('showCoverPage', $locale);
-	}
-
-	/**
-	 * Set show issue cover image flag
-	 * @param $showCoverPage int
-	 * @param $locale string
-	 */
-	function setShowCoverPage($showCoverPage, $locale) {
-		return $this->setData('showCoverPage', $showCoverPage, $locale);
-	}
-
-	/**
-	 * get hide cover page in archives
-	 * @param $locale string
-	 * @return int
-	 */
-	function getHideCoverPageArchives($locale) {
-		return $this->getData('hideCoverPageArchives', $locale);
-	}
-
-	/**
-	 * set hide cover page in archives
-	 * @param $hideCoverPageArchives int
-	 * @param $locale string
-	 */
-	function setHideCoverPageArchives($hideCoverPageArchives, $locale) {
-		return $this->setData('hideCoverPageArchives', $hideCoverPageArchives, $locale);
-	}
-
-	/**
-	 * get hide cover page prior to ToC
-	 * @param $locale string
-	 * @return int
-	 */
-	function getHideCoverPageCover($locale) {
-		return $this->getData('hideCoverPageCover', $locale);
-	}
-
-	/**
-	 * set hide cover page prior to ToC
-	 * @param $hideCoverPageCover int
-	 * @param $locale string
-	 */
-	function setHideCoverPageCover($hideCoverPageCover, $locale) {
-		return $this->setData('hideCoverPageCover', $hideCoverPageCover, $locale);
-	}
-
-	/**
-	 * get style file name
-	 * @return string
-	 */
-	function getStyleFileName() {
-		return $this->getData('styleFileName');
-	}
-
-	/**
-	 * set style file name
-	 * @param $styleFileName string
-	 */
-	function setStyleFileName($styleFileName) {
-		return $this->setData('styleFileName', $styleFileName);
-	}
-
-	/**
-	 * get original style file name
-	 * @return string
-	 */
-	function getOriginalStyleFileName() {
-		return $this->getData('originalStyleFileName');
-	}
-
-	/**
-	 * set original style file name
-	 * @param $originalStyleFileName string
-	 */
-	function setOriginalStyleFileName($originalStyleFileName) {
-		return $this->setData('originalStyleFileName', $originalStyleFileName);
+	function setCoverImageAltText($coverImageAltText, $locale) {
+		return $this->setData('coverImageAltText', $coverImageAltText, $locale);
 	}
 
 	/**
@@ -639,28 +434,19 @@ class Issue extends DataObject {
 
 	/**
 	 * Return the string of the issue identification based label format
-	 * @param $default bool labelFormat type
-	 * @param $breadcrumb bool return type of label
-	 * @param $long bool long format of label
+	 * @param $force array force show/hide of data components
 	 * @return string
 	 */
-	function getIssueIdentification($default = false, $breadcrumb = false, $long = false) {
+	function getIssueIdentification($force = array()) {
 
-		if ($default) {
-			$showVolume = 1;
-			$showNumber = 1;
-			$showYear = 1;
-			$showTitle = 0;
-		} else {
-			$showVolume = $this->getData('showVolume');
-			$showNumber = $this->getData('showNumber');
-			$showYear = $this->getData('showYear');
-			$showTitle = $this->getData('showTitle');
-		}
+		$displayOptions = array(
+			'showVolume' => $this->getData('showVolume'),
+			'showNumber' => $this->getData('showNumber'),
+			'showYear' => $this->getData('showYear'),
+			'showTitle' => $this->getData('showTitle'),
+		);
 
-		if ($breadcrumb && ($showVolume || $showNumber || $showYear)) {
-			$showTitle = 0;
-		}
+		$displayOptions = array_merge($displayOptions, $force);
 
 		AppLocale::requireComponents(array(LOCALE_COMPONENT_APP_COMMON));
 		$volLabel = __('issue.vol');
@@ -669,39 +455,55 @@ class Issue extends DataObject {
 		$vol = $this->getData('volume');
 		$num = $this->getData('number');
 		$year = $this->getData('year');
-		$title = $this->getLocalizedData('title');
+		$title = $this->getLocalizedTitle();
 
-		$identification = '';
+		$identification = array();
+		foreach($displayOptions as $opt => $val) {
 
-		if ($showVolume) {
-			$identification = "$volLabel $vol";
-		}
-		if ($showNumber) {
-			if (!empty($identification)) {
-				$identification .= ", ";
+			if (empty($val)) {
+				continue;
 			}
-			$identification .= "$numLabel $num";
-		}
-		if ($showYear) {
-			if (!empty($identification)) {
-				$identification .= " ($year)";
-			} else {
-				$identification = "$year";
+
+			if ($opt == 'showVolume') {
+				$identification[] = "$volLabel $vol";
+			} elseif ($opt == 'showNumber') {
+				$identification[] = "$numLabel $num";
+			} elseif ($opt == 'showYear') {
+				$identification[] = !empty($identification) ? "($year)" : $year;
+			} elseif ($opt == 'showTitle' ) {
+				if (!empty($title)) {
+					// Append a separator to the last key
+					if (!empty($identification)) {
+						end($identification);
+						$identification[key($identification)] .= ':';
+					}
+					$identification[] = $title;
+				}
 			}
 		}
 
-		if ($showTitle || ($long && !empty($title))) {
-			if (!empty($identification)) {
-				$identification .= ': ';
-			}
-			$identification .= "$title";
-		}
-
+		// If we've got an empty title, re-run the function and force a result
 		if (empty($identification)) {
-			$identification = "$volLabel $vol, $numLabel $num ($year)";
+			return $this->getIssueIdentification(
+				array(
+					'showVolume' => true,
+					'showNumber' => true,
+					'showYear' => true,
+					'showTitle' => false,
+				)
+			);
 		}
 
-		return $identification;
+		return join(' ', $identification);
+	}
+
+	/**
+	 * Return the string of the issue series identification
+	 * eg: Vol 1 No 1 (2000)
+	 * @return string
+	 */
+	function getIssueSeries() {
+		return $this->getIssueIdentification(array('showTitle' => false));
 	}
 
 	/**
@@ -715,23 +517,29 @@ class Issue extends DataObject {
 
 	/**
 	 * Return the "best" issue ID -- If a public issue ID is set,
-	 * use it; otherwise use the internal issue Id. (Checks the journal
-	 * settings to ensure that the public ID feature is enabled.)
-	 * @param $journal object The journal this issue is in
+	 * use it; otherwise use the internal issue Id.
 	 * @return string
 	 */
-	function getBestIssueId($journal = null) {
-		// Retrieve the journal, if necessary.
-		if (!isset($journal)) {
-			$journalDao = DAORegistry::getDAO('JournalDAO');
-			$journal = $journalDao->getById($this->getJournalId());
-		}
-
-		if ($journal->getSetting('enablePublicIssueId')) {
-			$publicIssueId = $this->getPubId('publisher-id');
-			if (!empty($publicIssueId)) return $publicIssueId;
-		}
+	function getBestIssueId() {
+		$publicIssueId = $this->getStoredPubId('publisher-id');
+		if (!empty($publicIssueId)) return $publicIssueId;
 		return $this->getId();
+	}
+
+	/**
+	 * Check whether a description exists for this issue
+	 * @return bool
+	 */
+	function hasDescription() {
+		$description = $this->getLocalizedDescription();
+		return !empty($description);
+	}
+
+	/**
+	 * @copydoc DataObject::getDAO()
+	 */
+	function getDAO() {
+		return DAORegistry::getDAO('IssueDAO');
 	}
 }
 

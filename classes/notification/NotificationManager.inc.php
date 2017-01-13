@@ -3,7 +3,8 @@
 /**
  * @file classes/notification/NotificationManager.inc.php
  *
- * Copyright (c) 2000-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2000-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class PKPNotificationManager
@@ -22,8 +23,8 @@ class NotificationManager extends PKPNotificationManager {
 	/**
 	 * Constructor.
 	 */
-	function NotificationManager() {
-		parent::PKPNotificationManager();
+	function __construct() {
+		parent::__construct();
 	}
 
 
@@ -176,22 +177,19 @@ class NotificationManager extends PKPNotificationManager {
 	}
 
 	/**
-	 * Returns an array of information on the journal's subscription settings
-	 * @return array
-	 */
-	function getSubscriptionSettings($request) {
-		$journal = $request->getJournal();
-		if (!$journal) return array();
-
-		import('classes.payment.ojs.OJSPaymentManager');
-		$paymentManager = new OJSPaymentManager($request);
-
-		$settings = array('subscriptionsEnabled' => $paymentManager->acceptSubscriptionPayments(),
-				'allowRegReviewer' => $journal->getSetting('allowRegReviewer'),
-				'allowRegAuthor' => $journal->getSetting('allowRegAuthor'));
-
-		return $settings;
-	}
+         * @copydoc PKPNotificationManager::getMgrDelegate()
+         */
+        protected function getMgrDelegate($notificationType, $assocType, $assocId) {
+                switch ($notificationType) {
+                        case NOTIFICATION_TYPE_APPROVE_SUBMISSION:
+                        case NOTIFICATION_TYPE_VISIT_CATALOG:
+                                assert($assocType == ASSOC_TYPE_SUBMISSION && is_numeric($assocId));
+                                import('classes.notification.managerDelegate.ApproveSubmissionNotificationManager');
+                                return new ApproveSubmissionNotificationManager($notificationType);
+                }
+                // Otherwise, fall back on parent class
+                return parent::getMgrDelegate($notificationType, $assocType, $assocId);
+        }
 }
 
 ?>

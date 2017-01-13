@@ -7,7 +7,8 @@
 ;
 ; config.TEMPLATE.inc.php
 ;
-; Copyright (c) 2003-2013 John Willinsky
+; Copyright (c) 2014-2016 Simon Fraser University Library
+; Copyright (c) 2003-2016 John Willinsky
 ; Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
 ;
 ; OJS Configuration settings.
@@ -30,12 +31,6 @@ installed = Off
 ; The canonical URL to the OJS installation (excluding the trailing slash)
 base_url = "http://pkp.sfu.ca/ojs"
 
-; Path to the registry directory (containing various settings files)
-; Although the files in this directory generally do not contain any
-; sensitive information, the directory can be moved to a location that
-; is not web-accessible if desired
-registry_dir = registry
-
 ; Session cookie name
 session_cookie_name = OJSSID
 
@@ -50,6 +45,14 @@ session_lifetime = 30
 ; Set this to On if you have set up the scheduled tasks script to
 ; execute periodically
 scheduled_tasks = Off
+
+; Site time zone
+; Please refer to lib/pkp/registry/timeZones.xml for a full list of supported
+; time zones.
+; I.e.:
+; <entry key="Europe/Amsterdam" name="Amsterdam" />
+; time_zone="Amsterdam"
+time_zone = "UTC"
 
 ; Short and long date formats
 date_format_trunc = "%m-%d"
@@ -86,6 +89,11 @@ allow_url_fopen = Off
 ; See FAQ for more details.
 restful_urls = Off
 
+; Allow the X_FORWARDED_FOR header to override the REMOTE_ADDR as the source IP
+; Set this to "On" if you are behind a reverse proxy and you control the X_FORWARDED_FOR
+; Warning: This defaults to "On" if unset for backwards compatibility.
+trust_x_forwarded_for = Off
+
 ; Allow javascript files to be served through a content delivery network (set to off to use local files)
 enable_cdn = On
 
@@ -98,6 +106,15 @@ citation_checking_max_processes = 3
 
 ; Display a message on the site admin and journal manager user home pages if there is an upgrade available
 show_upgrade_warning = On
+
+; Set the following parameter to off if you want to work with the uncompiled (non-minified) JavaScript
+; source for debugging or if you are working off a development branch without compiled JavaScript.
+enable_minified = Off
+
+; Provide a unique site ID and OAI base URL to PKP for statistics and security
+; alert purposes only.
+enable_beacon = On
+
 
 ;;;;;;;;;;;;;;;;;;;;;
 ; Database Settings ;
@@ -200,13 +217,17 @@ public_files_dir = public
 ; Permissions mask for created files and directories
 umask = 0022
 
+; The minimum percentage similarity between filenames that should be considered
+; a possible revision
+filename_revision_match = 70
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Fileinfo (MIME) Settings ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 [finfo]
-mime_database_path = /etc/magic.mime
+; mime_database_path = /etc/magic.mime
 
 
 ;;;;;;;;;;;;;;;;;;;;;
@@ -228,16 +249,21 @@ session_check_ip = On
 
 ; The encryption (hashing) algorithm to use for encrypting user passwords
 ; Valid values are: md5, sha1
-; Note that sha1 requires PHP >= 4.3.0
-encryption = md5
+; NOTE: This hashing method is deprecated, but necessary to permit gradual
+; migration of old password hashes.
+encryption = sha1
+
+; The unique salt to use for generating password reset hashes
+salt = "YouMustSetASecretKeyHere!!"
+
+; The number of seconds before a password reset hash expires (defaults to 7200 / 2 hours)
+reset_seconds = 7200
 
 ; Allowed HTML tags for fields that permit restricted HTML.
-; For PHP 5.0.5 and greater, allowed attributes must be specified individually
-; e.g. <img src|alt> to allow "src" and "alt" attributes. Unspecified
-; attributes will be stripped. For PHP below 5.0.5 attributes may not be
-; specified in this way.
-allowed_html = "a[href|target],em,strong,cite,code,ul,ol,li,dl,dt,dd,b,i,u,img[src|alt],sup,sub,br,p"
-
+; Use e.g. "img[src,alt],p" to allow "src" and "alt" attributes to the "img"
+; tag, and also to permit the "p" paragraph tag. Unspecified attributes will be
+; stripped.
+allowed_html = "a[href|target|title],em,strong,cite,code,ul,ol,li[class],dl,dt,dd,b,i,u,img[src|alt],sup,sub,br,p"
 
 ;Is implicit authentication enabled or not
 
@@ -288,10 +314,10 @@ allowed_html = "a[href|target],em,strong,cite,code,ul,ol,li,dl,dt,dd,b,i,u,img[s
 ; Default envelope sender to use if none is specified elsewhere
 ; default_envelope_sender = my_address@my_host.com
 
-; Enable attachments in the various "Send Email" pages.
-; (Disabling here will not disable attachments on features that
-; require them, e.g. attachment-based reviews)
-enable_attachments = On
+; Force the default envelope sender (if present)
+; This is useful if setting up a site-wide noreply address
+; The reply-to field will be set with the reply-to or from address.
+; force_default_envelope_sender = Off
 
 ; Amount of time required between attempts to send non-editorial emails
 ; in seconds. This can be used to help prevent email relaying via OJS.
@@ -391,12 +417,6 @@ recaptcha_private_key = your_private_key
 ; Whether or not to use Captcha on user registration
 captcha_on_register = on
 
-; Whether or not to use Captcha on user comments
-captcha_on_comments = on
-
-; Whether or not to use Captcha on notification mailing list registration
-captcha_on_mailinglist = on
-
 
 ;;;;;;;;;;;;;;;;;;;;;
 ; External Commands ;
@@ -455,3 +475,6 @@ display_errors = Off
 
 ; Display deprecation warnings
 deprecation_warnings = Off
+
+; Log web service request information for debugging
+log_web_service_info = Off

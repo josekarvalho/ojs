@@ -3,7 +3,8 @@
 /**
  * @file plugins/generic/webFeed/WebFeedGatewayPlugin.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class WebFeedGatewayPlugin
@@ -13,14 +14,14 @@
  *
  */
 
-import('classes.plugins.GatewayPlugin');
+import('lib.pkp.classes.plugins.GatewayPlugin');
 
 class WebFeedGatewayPlugin extends GatewayPlugin {
 	/** @var string Name of parent plugin */
 	var $parentPluginName;
 
-	function WebFeedGatewayPlugin($parentPluginName) {
-		parent::GatewayPlugin();
+	function __construct($parentPluginName) {
+		parent::__construct();
 		$this->parentPluginName = $parentPluginName;
 	}
 
@@ -50,28 +51,24 @@ class WebFeedGatewayPlugin extends GatewayPlugin {
 
 	/**
 	 * Get the web feed plugin
-	 * @return object
+	 * @return WebFeedPlugin
 	 */
-	function &getWebFeedPlugin() {
-		$plugin =& PluginRegistry::getPlugin('generic', $this->parentPluginName);
-		return $plugin;
+	function getWebFeedPlugin() {
+		return PluginRegistry::getPlugin('generic', $this->parentPluginName);
 	}
 
 	/**
 	 * Override the builtin to get the correct plugin path.
 	 */
 	function getPluginPath() {
-		$plugin =& $this->getWebFeedPlugin();
-		return $plugin->getPluginPath();
+		return $this->getWebFeedPlugin()->getPluginPath();
 	}
 
 	/**
-	 * Override the builtin to get the correct template path.
-	 * @return string
+	 * @copydoc PKPPlugin::getTemplatePath
 	 */
-	function getTemplatePath() {
-		$plugin =& $this->getWebFeedPlugin();
-		return $plugin->getTemplatePath() . 'templates/';
+	function getTemplatePath($inCore = false) {
+		return $this->getWebFeedPlugin()->getTemplatePath($inCore);
 	}
 
 	/**
@@ -80,23 +77,15 @@ class WebFeedGatewayPlugin extends GatewayPlugin {
 	 * @return boolean
 	 */
 	function getEnabled() {
-		$plugin =& $this->getWebFeedPlugin();
-		return $plugin->getEnabled(); // Should always be true anyway if this is loaded
-	}
-
-	/**
-	 * Get the management verbs for this plugin (override to none so that the parent
-	 * plugin can handle this)
-	 * @return array
-	 */
-	function getManagementVerbs() {
-		return array();
+		return $this->getWebFeedPlugin()->getEnabled();
 	}
 
 	/**
 	 * Handle fetch requests for this plugin.
+	 * @param $args array Arguments.
+	 * @param $request PKPRequest Request object.
 	 */
-	function fetch($args) {
+	function fetch($args, $request) {
 		// Make sure we're within a Journal context
 		$request = $this->getRequest();
 		$journal = $request->getJournal();
@@ -107,7 +96,7 @@ class WebFeedGatewayPlugin extends GatewayPlugin {
 		$issue = $issueDao->getCurrent($journal->getId(), true);
 		if (!$issue) return false;
 
-		$webFeedPlugin =& $this->getWebFeedPlugin();
+		$webFeedPlugin = $this->getWebFeedPlugin();
 		if (!$webFeedPlugin->getEnabled()) return false;
 
 		// Make sure the feed type is specified and valid
@@ -132,23 +121,26 @@ class WebFeedGatewayPlugin extends GatewayPlugin {
 		if ($displayItems == 'recent' && $recentItems > 0) {
 			import('lib.pkp.classes.db.DBResultRange');
 			$rangeInfo = new DBResultRange($recentItems, 1);
-			$publishedArticleObjects =& $publishedArticleDao->getPublishedArticlesByJournalId($journal->getId(), $rangeInfo, true);
+			$publishedArticleObjects = $publishedArticleDao->getPublishedArticlesByJournalId($journal->getId(), $rangeInfo, true);
+			$publishedArticles = array();
 			while ($publishedArticle = $publishedArticleObjects->next()) {
 				$publishedArticles[]['articles'][] = $publishedArticle;
 			}
 		} else {
-			$publishedArticles =& $publishedArticleDao->getPublishedArticlesInSections($issue->getId(), true);
+			$publishedArticles = $publishedArticleDao->getPublishedArticlesInSections($issue->getId(), true);
 		}
 
 		$versionDao = DAORegistry::getDAO('VersionDAO');
 		$version = $versionDao->getCurrentVersion();
 
 		$templateMgr = TemplateManager::getManager($request);
-		$templateMgr->assign('ojsVersion', $version->getVersionString());
-		$templateMgr->assign('publishedArticles', $publishedArticles);
-		$templateMgr->assign('journal', $journal);
-		$templateMgr->assign('issue', $issue);
-		$templateMgr->assign('showToc', true);
+		$templateMgr->assign(array(
+			'ojsVersion' => $version->getVersionString(),
+			'publishedArticles' => $publishedArticles,
+			'journal' => $journal,
+			'issue' => $issue,
+			'showToc' => true,
+		));
 
 		$templateMgr->display($this->getTemplatePath() . $typeMap[$type], $mimeTypeMap[$type]);
 

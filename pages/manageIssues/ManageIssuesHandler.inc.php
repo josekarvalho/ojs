@@ -3,7 +3,8 @@
 /**
  * @file pages/manageIssues/ManageIssuesHandler.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class IssueManagementHandler
@@ -21,7 +22,8 @@ class ManageIssuesHandler extends Handler {
 	/**
 	 * Constructor
 	 */
-	function ManageIssuesHandler() {
+	function __construct() {
+		parent::__construct();
 		$this->addRoleAssignment(
 			array(ROLE_ID_SUB_EDITOR, ROLE_ID_MANAGER),
 			array(
@@ -43,13 +45,14 @@ class ManageIssuesHandler extends Handler {
 	 * Displays the issue listings in a tabbed interface.
 	 * @param $args array
 	 * @param $request PKPRequest
+	 * @return JSONMessage JSON object
 	 */
 	function index($args, $request) {
 		$this->setupTemplate($request);
 		AppLocale::requireComponents(LOCALE_COMPONENT_APP_EDITOR);
 
 		$templateMgr = TemplateManager::getManager($request);
-		$templateMgr->display('manageIssues/issues.tpl');
+		return $templateMgr->display('manageIssues/issues.tpl');
 	}
 }
 

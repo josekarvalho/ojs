@@ -3,7 +3,8 @@
 /**
  * @file plugins/reports/reviews/ReviewReportPlugin.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class ReviewReportPlugin
@@ -13,7 +14,7 @@
  * @brief Review report plugin
  */
 
-import('classes.plugins.ReportPlugin');
+import('lib.pkp.classes.plugins.ReportPlugin');
 
 class ReviewReportPlugin extends ReportPlugin {
 	/**
@@ -50,8 +51,10 @@ class ReviewReportPlugin extends ReportPlugin {
 		return __('plugins.reports.reviews.description');
 	}
 
-	function display(&$args) {
-		$request = $this->getRequest();
+	/**
+	 * @copydoc ReportPlugin::display()
+	 */
+	function display($args, $request) {
 		$journal = $request->getJournal();
 
 		header('content-type: text/comma-separated-values');
@@ -72,7 +75,7 @@ class ReviewReportPlugin extends ReportPlugin {
 
 		$yesnoMessages = array( 0 => __('common.no'), 1 => __('common.yes'));
 
-		import('classes.submission.reviewAssignment.ReviewAssignment');
+		import('lib.pkp.classes.submission.reviewAssignment.ReviewAssignment');
 		$recommendations = array(
 			SUBMISSION_REVIEWER_RECOMMENDATION_ACCEPT => 'reviewer.article.decision.accept',
 			SUBMISSION_REVIEWER_RECOMMENDATION_PENDING_REVISIONS => 'reviewer.article.decision.pendingRevisions',

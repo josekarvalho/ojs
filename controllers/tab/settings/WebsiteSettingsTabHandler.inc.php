@@ -3,7 +3,8 @@
 /**
  * @file controllers/tab/settings/WebsiteSettingsTabHandler.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class WebsiteSettingsTabHandler
@@ -19,7 +20,7 @@ class WebsiteSettingsTabHandler extends ManagerSettingsTabHandler {
 	/**
 	 * Constructor
 	 */
-	function WebsiteSettingsTabHandler() {
+	function __construct() {
 		$this->addRoleAssignment(ROLE_ID_MANAGER,
 			array(
 				'showFileUploadForm',
@@ -30,15 +31,14 @@ class WebsiteSettingsTabHandler extends ManagerSettingsTabHandler {
 				'reloadLocalizedDefaultSettings'
 			)
 		);
-		parent::ManagerSettingsTabHandler();
+		parent::__construct();
 		$this->setPageTabs(array(
-			'appearance' => 'controllers.tab.settings.appearance.form.OJSAppearanceForm',
+			'appearance' => 'controllers.tab.settings.appearance.form.AppearanceForm',
 			'information' => 'lib.pkp.controllers.tab.settings.information.form.InformationForm',
 			'archiving' => 'lib.pkp.controllers.tab.settings.archiving.form.ArchivingForm',
 			'languages' => 'controllers/tab/settings/languages/languages.tpl',
 			'plugins' => 'controllers/tab/settings/plugins/plugins.tpl',
 			'announcements' => 'lib.pkp.controllers.tab.settings.announcements.form.AnnouncementSettingsForm',
-			'navigation' => 'controllers/tab/settings/navigation/navigation.tpl',
 		));
 	}
 
@@ -48,7 +48,6 @@ class WebsiteSettingsTabHandler extends ManagerSettingsTabHandler {
 	function showTab($args, $request) {
 		$workingContexts = $this->getWorkingContexts($request);
 
-		$multipleContexts = false;
 		if ($workingContexts && $workingContexts->getCount() > 1) {
 			$templateMgr = TemplateManager::getManager($request);
 			$templateMgr->assign('multipleContexts', true);
@@ -63,45 +62,42 @@ class WebsiteSettingsTabHandler extends ManagerSettingsTabHandler {
 	 * Show the upload image form.
 	 * @param $request Request
 	 * @param $args array
-	 * @return string JSON message
+	 * @return JSONMessage JSON object
 	 */
 	function showFileUploadForm($args, $request) {
 		$fileUploadForm = $this->_getFileUploadForm($request);
 		$fileUploadForm->initData($request);
 
-		$json = new JSONMessage(true, $fileUploadForm->fetch($request));
-		return $json->getString();
+		return new JSONMessage(true, $fileUploadForm->fetch($request));
 	}
 
 	/**
 	 * Upload a new file.
 	 * @param $args array
 	 * @param $request PKPRequest
-	 * @return string
+	 * @return JSONMessage JSON object
 	 */
 	function uploadFile($args, $request) {
 		$fileUploadForm = $this->_getFileUploadForm($request);
-		$json = new JSONMessage();
 
 		$temporaryFileId = $fileUploadForm->uploadFile($request);
 
 		if ($temporaryFileId !== false) {
+			$json = new JSONMessage();
 			$json->setAdditionalAttributes(array(
 				'temporaryFileId' => $temporaryFileId
 			));
+			return $json;
 		} else {
-			$json->setStatus(false);
-			$json->setContent(__('common.uploadFailed'));
+			return new JSONMessage(false, __('common.uploadFailed'));
 		}
-
-		return $json->getString();
 	}
 
 	/**
 	 * Save an uploaded file.
 	 * @param $args array
 	 * @param $request PKPRequest
-	 * @return string
+	 * @return JSONMessage JSON object
 	 */
 	function saveFile($args, $request) {
 		$fileUploadForm = $this->_getFileUploadForm($request);
@@ -114,8 +110,7 @@ class WebsiteSettingsTabHandler extends ManagerSettingsTabHandler {
 				return DAO::getDataChangedEvent($settingName);
 			}
 		}
-		$json = new JSONMessage(false, __('common.invalidFileType'));
-		return $json->getString();
+		return new JSONMessage(false, __('common.invalidFileType'));
 	}
 
 	/**
@@ -130,7 +125,7 @@ class WebsiteSettingsTabHandler extends ManagerSettingsTabHandler {
 		$tabForm = $this->getTabForm();
 		$tabForm->initData($request);
 
-		if ($tabForm->deleteFile($settingName, $request)) {
+		if ($request->checkCSRF() && $tabForm->deleteFile($settingName, $request)) {
 			return DAO::getDataChangedEvent($settingName);
 		} else {
 			return new JSONMessage(false);
@@ -142,7 +137,7 @@ class WebsiteSettingsTabHandler extends ManagerSettingsTabHandler {
 	 *
 	 * @param $args array
 	 * @param $request Request
-	 * @return string
+	 * @return JSONMessage JSON object
 	 */
 	function fetchFile($args, $request) {
 		// Get the setting name.
@@ -161,20 +156,20 @@ class WebsiteSettingsTabHandler extends ManagerSettingsTabHandler {
 			$json->setElementId($settingName);
 			$json->setContent($renderedElement);
 		}
-		return $json->getString();
+		return $json;
 	}
 
 	/**
 	 * Reload the default localized settings for the journal
 	 * @param $args array
 	 * @param $request object
+	 * @return JSONMessage JSON object
 	 */
 	function reloadLocalizedDefaultSettings($args, $request) {
 		// make sure the locale is valid
 		$locale = $request->getUserVar('localeToLoad');
 		if ( !AppLocale::isLocaleValid($locale) ) {
-			$json = new JSONMessage(false);
-			return $json->getString();
+			return new JSONMessage(false);
 		}
 
 		$journal = $request->getJournal();
@@ -220,6 +215,7 @@ class WebsiteSettingsTabHandler extends ManagerSettingsTabHandler {
 				$fileUploadForm = new NewContextCssFileForm($settingName);
 				break;
 			default:
+				$fileUploadForm = null; // Suppress scrutinizer
 				assert(false);
 				break;
 		}

@@ -6,11 +6,11 @@
 Contributing Code
 _________________
 
-The PKP team is happy to accept patches in the public "OJS Development" forum
-at <http://pkp.sfu.ca/support/forum/viewforum.php?f=9>. If you would like to
-have your patch included in the OJS codebase, we suggest discussing it with the
-OJS team before implementation to ensure that it suits upcoming development
-plans.
+The PKP team is happy to accept patches in the PKP Community Forum at
+<http://forum.pkp.sfu.ca> or Github at <http://www.github.com/pkp>. If you
+would like to have your patch included in the OJS codebase, we suggest
+discussing it with the OJS team before implementation to ensure that it suits
+upcoming development plans.
 
 For code that is intended for inclusion in the main codebase:
 * Pull requests against a current git clone are preferred; alternately, pull
@@ -180,8 +180,9 @@ git
 * A web interface to the git repository is located at <http://github.com/pkp>.
 * A brief log message describing the changes made must be included with all git
   commits.
-* Whenever possible, git commit log messages should include "*BUG_ID_NUMBER*" to
-  reference a Bugzilla report at <http://pkp.sfu.ca/bugzilla/>.
+* Whenever possible, git commit log messages should be prefixed with
+  "pkp/pkp-lib#ISSUENUM" to reference a git issue; see
+  <https://github.com/pkp/pkp-lib#issues>.
 * Please consult http://pkp.sfu.ca/wiki/index.php/HOW-TO_check_out_PKP_applications_from_git
   for instructions on setting up a development environment.
 
@@ -194,7 +195,8 @@ File Header
 /**
  * @file /path/to/filename.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @package PACKAGE
@@ -241,7 +243,8 @@ Templates
 	{**
 	 * /path/to/filename.tpl
 	 *
-	 * Copyright (c) 2003-2013 John Willinsky
+	 * Copyright (c) 2014-2016 Simon Fraser University Library
+	 * Copyright (c) 2003-2016 John Willinsky
 	 * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
 	 *
 	 * DESCRIPTION.

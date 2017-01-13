@@ -1,14 +1,14 @@
 {**
  * plugins/generic/externalFeed/externalFeedForm.tpl
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * External feed form under plugin management.
  *
  *}
 {strip}
-{assign var="pageCrumbTitle" value="$feedTitle"}
 {if $feedId}
 	{assign var="pageTitle" value="plugins.generic.externalFeed.manager.edit"}
 {else}
@@ -26,6 +26,7 @@
 	{rdelim});
 </script>
 <form class="pkp_form" id="externalFeed" method="post" action="{plugin_url path="update"}">
+{csrf}
 {if $feedId}
 <input type="hidden" name="feedId" value="{$feedId|escape}" />
 {/if}

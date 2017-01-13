@@ -1,14 +1,14 @@
 {**
  * templates/subscription/institutionalSubscriptionForm.tpl
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * Individual subscription form under journal management.
  *
  *}
 {strip}
-{assign var="pageCrumbTitle" value="$subscriptionTitle"}
 {if $subscriptionId}
 	{assign var="pageTitle" value="manager.subscriptions.edit"}
 	{url|assign:"currentUrl" op="editSubscription" path="institutional"|to_array:$subscriptionId userId=$userId}
@@ -31,6 +31,7 @@
 {if $subscriptionId}
 <input type="hidden" name="subscriptionId" value="{$subscriptionId|escape}" />
 {/if}
+{csrf}
 
 {include file="common/formErrors.tpl"}
 

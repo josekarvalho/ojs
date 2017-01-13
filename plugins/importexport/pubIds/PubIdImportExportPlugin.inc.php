@@ -3,7 +3,8 @@
 /**
  * @file plugins/importexport/pubIds/PubIdImportExportPlugin.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class PubIdImportExportPlugin
@@ -12,9 +13,7 @@
  * @brief Public identifier import/export plugin
  */
 
-
-import('classes.plugins.ImportExportPlugin');
-
+import('lib.pkp.classes.plugins.ImportExportPlugin');
 import('lib.pkp.classes.xml.XMLCustomWriter');
 
 define('PID_DTD_URL', 'http://pkp.sfu.ca/ojs/dtds/2.3/pubIds.dtd');
@@ -56,10 +55,10 @@ class PubIdImportExportPlugin extends ImportExportPlugin {
 	}
 
 	/**
-	 * @see Plugin::getTemplatePath()
+	 * @copydoc Plugin::getTemplatePath()
 	 */
-	function getTemplatePath() {
-		return parent::getTemplatePath() . 'templates/';
+	function getTemplatePath($inCore = false) {
+		return parent::getTemplatePath($inCore) . 'templates/';
 	}
 
 	/**
@@ -119,7 +118,7 @@ class PubIdImportExportPlugin extends ImportExportPlugin {
 
 				$doc =& $this->getDocument($temporaryFile->getFilePath());
 				@set_time_limit(0);
-				$this->handleImport($context, $doc, $errors, $pubIds, $false);
+				$this->handleImport($context, $doc, $errors, $pubIds, false);
 				$templateMgr->assign('errors', $errors);
 				$templateMgr->assign('pubIds', $pubIds);
 				return $templateMgr->display($this->getTemplatePath() . 'importResults.tpl');
@@ -135,7 +134,7 @@ class PubIdImportExportPlugin extends ImportExportPlugin {
 	 * @param $issues array
 	 * @param $outputFile xml file containing the exported public identifiers
 	 */
-	function exportPubIdsForIssues(&$journal, &$issues, $outputFile = null) {
+	function exportPubIdsForIssues($journal, $issues, $outputFile = null) {
 		$doc =& XMLCustomWriter::createDocument('pubIds', PID_DTD_URL, PID_DTD_URL);
 		$pubIdsNode =& XMLCustomWriter::createElement($doc, 'pubIds');
 		XMLCustomWriter::appendChild($doc, $pubIdsNode);
@@ -151,11 +150,6 @@ class PubIdImportExportPlugin extends ImportExportPlugin {
 				$galleys = $articleGalleyDao->getBySubmissionId($publishedArticle->getId());
 				while ($galley = $galleys->next()) {
 					$this->generatePubId($doc, $pubIdsNode, $galley, $journal->getId());
-				}
-
-				$suppFileDao = DAORegistry::getDAO('SuppFileDAO');
-				foreach ($suppFileDao->getSuppFilesByArticle($publishedArticle->getId()) as $suppFile) {
-					$this->generatePubId($doc, $pubIdsNode, $suppFile, $journal->getId());
 				}
 			}
 		}
@@ -205,9 +199,6 @@ class PubIdImportExportPlugin extends ImportExportPlugin {
 					case 'Galley':
 						$pubObject = $dao->getById($pubObjectId);
 						break;
-					case 'SuppFile':
-						$pubObject = $dao->getSuppFile($pubObjectId);
-						break;
 					default:
 						$errors[] = array('plugins.importexport.pubIds.import.error.unknownObjectType', array('pubObjectType' => $pubObjectType, 'pubId' => $pubIdValue));
 						break;
@@ -218,7 +209,7 @@ class PubIdImportExportPlugin extends ImportExportPlugin {
 						if (!$pubIdPlugin->checkDuplicate($pubIdValue, $pubObject, $journal->getId())) {
 							$errors[] = array('plugins.importexport.pubIds.import.error.duplicatePubId', array('pubId' => $pubIdValue));
 						} else {
-							$pubIdPlugin->setStoredPubId($pubObject, $pubObjectType, $pubIdValue);
+							$pubIdPlugin->setStoredPubId($pubObject, $pubIdValue);
 							$pubId = array('pubObjectType' => $pubObjectType, 'pubObjectId' => $pubObjectId, 'value' => $pubIdValue);
 						}
 					} else {
@@ -325,31 +316,6 @@ class PubIdImportExportPlugin extends ImportExportPlugin {
 	}
 
 	/**
-	 * Check if this is a relative path to the xml docuemnt
-	 * that describes public identifiers to be imported.
-	 * @param $url string path to the xml file
-	 */
-	function isRelativePath($url) {
-		// FIXME This is not very comprehensive, but will work for now.
-		if ($this->isAllowedMethod($url)) return false;
-		if ($url[0] == '/') return false;
-		return true;
-	}
-
-	function isAllowedMethod($url) {
-		$allowedPrefixes = array(
-			'http://',
-			'ftp://',
-			'https://',
-			'ftps://'
-		);
-		foreach ($allowedPrefixes as $prefix) {
-			if (substr($url, 0, strlen($prefix)) === $prefix) return true;
-		}
-		return false;
-	}
-
-	/**
 	 * @see ImportExportPlugin::executeCLI()
 	 */
 	function executeCLI($scriptName, &$args) {
@@ -443,7 +409,7 @@ class PubIdImportExportPlugin extends ImportExportPlugin {
 							}
 							$issues[] = $issue;
 						}
-						if (!$this->exportPubIdsForIssues($journal, array(&$issue), $xmlFile)) {
+						if (!$this->exportPubIdsForIssues($journal, $issues, $xmlFile)) {
 							echo __('plugins.importexport.pubIds.cliError') . "\n";
 							echo __('plugins.importexport.pubIds.cliError.couldNotWrite', array('fileName' => $xmlFile)) . "\n\n";
 						}

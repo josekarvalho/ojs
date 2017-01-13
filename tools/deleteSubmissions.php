@@ -3,7 +3,8 @@
 /**
  * @file tools/deleteSubmissions.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class deleteSubmissions
@@ -14,8 +15,6 @@
 
 require(dirname(__FILE__) . '/bootstrap.inc.php');
 
-import('classes.file.ArticleFileManager');
-
 class SubmissionDeletionTool extends CommandLineTool {
 
 	var $articleIds;
@@ -24,8 +23,8 @@ class SubmissionDeletionTool extends CommandLineTool {
 	 * Constructor.
 	 * @param $argv array command-line arguments
 	 */
-	function SubmissionDeletionTool($argv = array()) {
-		parent::CommandLineTool($argv);
+	function __construct($argv = array()) {
+		parent::__construct($argv);
 
 		if (!sizeof($this->argv)) {
 			$this->usage();
@@ -40,7 +39,7 @@ class SubmissionDeletionTool extends CommandLineTool {
 	 */
 	function usage() {
 		echo "Permanently removes submission(s) and associated information.  USE WITH CARE.\n"
-			. "Usage: {$this->scriptName} submssion_id [...]\n";
+			. "Usage: {$this->scriptName} submission_id [...]\n";
 	}
 
 	/**
@@ -48,29 +47,13 @@ class SubmissionDeletionTool extends CommandLineTool {
 	 */
 	function execute() {
 		$articleDao = DAORegistry::getDAO('ArticleDAO');
-
 		foreach($this->parameters as $articleId) {
 			$article = $articleDao->getById($articleId);
-
-			if(isset($article)) {
-				// remove files first, to prevent orphans
-				$articleFileManager = new ArticleFileManager($articleId);
-
-				if (! file_exists($articleFileManager->filesDir)) {
-					printf("Warning: no files found for submission $articleId.\n");
-				} else {
-					if (! is_writable($articleFileManager->filesDir)) {
-						printf("Error: Skipping submission $articleId. Can't delete files in " . $articleFileManager->filesDir . "\n");
-						continue;
-					} else {
-						$articleFileManager->deleteArticleTree();
-					}
-				}
-
-				$articleDao->deleteById($articleId);
+			if(!isset($article)) {
+				printf("Error: Skipping $articleId. Unknown submission.\n");
 				continue;
 			}
-			printf("Error: Skipping $articleId. Unknown submission.\n");
+			$articleDao->deleteById($articleId);
 		}
 	}
 }

@@ -3,7 +3,8 @@
 /**
  * @file classes/subscription/form/SubscriptionForm.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class SubscriptionForm
@@ -33,10 +34,13 @@ class SubscriptionForm extends Form {
 
 	/**
 	 * Constructor
-	 * @param subscriptionId int The subscription ID for this subscription; null for new subscription
+	 * @param $template string? Template to use for form presentation
+	 * @param $subscriptionId int The subscription ID for this subscription; null for new subscription
 	 * @param $userId int The user ID for this subscription; null for new subscription
 	 */
-	function SubscriptionForm($subscriptionId = null, $userId = null) {
+	function __construct($template, $subscriptionId = null, $userId = null) {
+		parent::__construct($template);
+
 		$subscriptionId = isset($subscriptionId) ? (int) $subscriptionId : null;
 		$this->userId = isset($userId) ? (int) $userId : null;
 
@@ -69,23 +73,21 @@ class SubscriptionForm extends Form {
 		// Notify email flag is valid value
 		$this->addCheck(new FormValidatorInSet($this, 'notifyEmail', 'optional', 'manager.subscriptions.form.notifyEmailValid', array('1')));
 
-		// Form was POSTed
 		$this->addCheck(new FormValidatorPost($this));
+		$this->addCheck(new FormValidatorCSRF($this));
 	}
 
 	/**
 	 * Display the form.
 	 */
 	function display() {
-		$templateMgr = TemplateManager::getManager();
-		$journal = Request::getJournal();
-
 		if (isset($this->subscription)) {
 			$subscriptionId = $this->subscription->getId();
 		} else {
 			$subscriptionId = null;
 		}
 
+		$templateMgr = TemplateManager::getManager();
 		$templateMgr->assign('subscriptionId', $subscriptionId);
 		$templateMgr->assign('yearOffsetPast', SUBSCRIPTION_YEAR_OFFSET_PAST);
 		$templateMgr->assign('yearOffsetFuture', SUBSCRIPTION_YEAR_OFFSET_FUTURE);
@@ -106,7 +108,6 @@ class SubscriptionForm extends Form {
 		$templateMgr->assign('userFullName', $user->getFullName());
 		$templateMgr->assign('userEmail', $user->getEmail());
 		$templateMgr->assign('userPhone', $user->getPhone());
-		$templateMgr->assign('userFax', $user->getFax());
 		$templateMgr->assign('userMailingAddress', $user->getMailingAddress());
 		$templateMgr->assign('userCountry', $user->getCountry());
 		$templateMgr->assign('genderOptions', $userDao->getGenderOptions());
@@ -149,7 +150,6 @@ class SubscriptionForm extends Form {
 				'userUrl', $user->getUrl(),
 				'userEmail' => $user->getEmail(),
 				'userPhone' => $user->getPhone(),
-				'userFax' => $user->getFax(),
 				'userMailingAddress' => $user->getMailingAddress(),
 				'userCountry' => $user->getCountry(),
 				'membership' => $subscription->getMembership(),
@@ -163,7 +163,7 @@ class SubscriptionForm extends Form {
 	 * Assign form data to user-submitted data.
 	 */
 	function readInputData() {
-		$this->readUserVars(array('status', 'userId', 'typeId', 'dateStartYear', 'dateStartMonth', 'dateStartDay', 'dateEndYear', 'dateEndMonth', 'dateEndDay', 'userSalutation', 'userFirstName', 'userMiddleName', 'userLastName', 'userInitials', 'userGender', 'userAffiliation', 'userUrl', 'userEmail', 'userPhone', 'userFax', 'userMailingAddress', 'userCountry', 'membership', 'referenceNumber', 'notes', 'notifyEmail'));
+		$this->readUserVars(array('status', 'userId', 'typeId', 'dateStartYear', 'dateStartMonth', 'dateStartDay', 'dateEndYear', 'dateEndMonth', 'dateEndDay', 'userSalutation', 'userFirstName', 'userMiddleName', 'userLastName', 'userInitials', 'userGender', 'userAffiliation', 'userUrl', 'userEmail', 'userPhone', 'userMailingAddress', 'userCountry', 'membership', 'referenceNumber', 'notes', 'notifyEmail'));
 		$this->_data['dateStart'] = Request::getUserDateVar('dateStart');
 		$this->_data['dateEnd'] = Request::getUserDateVar('dateEnd');
 
@@ -243,7 +243,6 @@ class SubscriptionForm extends Form {
 		$user->setUrl($this->getData('userUrl'));
 		$user->setEmail($this->getData('userEmail'));
 		$user->setPhone($this->getData('userPhone'));
-		$user->setFax($this->getData('userFax'));
 		$user->setMailingAddress($this->getData('userMailingAddress'));
 		$user->setCountry($this->getData('userCountry'));
 
@@ -252,8 +251,9 @@ class SubscriptionForm extends Form {
 
 	/**
 	 * Internal function to prepare notification email
+	 * @param $emailTemplateKey string
 	 */
-	function &_prepareNotificationEmail($mailTemplateKey) {
+	function _prepareNotificationEmail($mailTemplateKey) {
 		$userDao = DAORegistry::getDAO('UserDAO');
 		$subscriptionTypeDao = DAORegistry::getDAO('SubscriptionTypeDAO');
 		$journalSettingsDao = DAORegistry::getDAO('JournalSettingsDAO');
@@ -267,7 +267,6 @@ class SubscriptionForm extends Form {
 		$subscriptionName = $journalSettingsDao->getSetting($journalId, 'subscriptionName');
 		$subscriptionEmail = $journalSettingsDao->getSetting($journalId, 'subscriptionEmail');
 		$subscriptionPhone = $journalSettingsDao->getSetting($journalId, 'subscriptionPhone');
-		$subscriptionFax = $journalSettingsDao->getSetting($journalId, 'subscriptionFax');
 		$subscriptionMailingAddress = $journalSettingsDao->getSetting($journalId, 'subscriptionMailingAddress');
 		$subscriptionContactSignature = $subscriptionName;
 
@@ -276,9 +275,6 @@ class SubscriptionForm extends Form {
 		}
 		if ($subscriptionPhone != '') {
 			$subscriptionContactSignature .= "\n" . __('user.phone') . ': ' . $subscriptionPhone;
-		}
-		if ($subscriptionFax != '') {
-			$subscriptionContactSignature .= "\n" . __('user.fax') . ': ' . $subscriptionFax;
 		}
 
 		$subscriptionContactSignature .= "\n" . __('user.email') . ': ' . $subscriptionEmail;

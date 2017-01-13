@@ -3,7 +3,8 @@
 /**
  * @file plugins/reports/views/ViewReportPlugin.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class ViewReportPlugin
@@ -13,7 +14,7 @@
  */
 
 
-import('classes.plugins.ReportPlugin');
+import('lib.pkp.classes.plugins.ReportPlugin');
 
 class ViewReportPlugin extends ReportPlugin {
 	/**
@@ -45,8 +46,10 @@ class ViewReportPlugin extends ReportPlugin {
 		return __('plugins.reports.views.description');
 	}
 
-	function display(&$args) {
-		$request = $this->getRequest();
+	/**
+	 * @copydoc ReportPlugin::display()
+	 */
+	function display($args, $request) {
 		$journal = $request->getJournal();
 
 		$columns = array(

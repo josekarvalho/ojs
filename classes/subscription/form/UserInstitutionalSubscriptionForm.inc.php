@@ -3,7 +3,8 @@
 /**
  * @file classes/subscription/form/UserInstitutionalSubscriptionForm.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class UserInstitutionalSubscriptionForm
@@ -33,8 +34,8 @@ class UserInstitutionalSubscriptionForm extends Form {
 	 * @param $userId int
 	 * @param $subscriptionId int
 	 */
-	function UserInstitutionalSubscriptionForm($request, $userId = null, $subscriptionId = null) {
-		parent::Form('subscription/userInstitutionalSubscriptionForm.tpl');
+	function __construct($request, $userId = null, $subscriptionId = null) {
+		parent::__construct('subscription/userInstitutionalSubscriptionForm.tpl');
 
 		$this->userId = isset($userId) ? (int) $userId : null;
 		$this->subscription = null;
@@ -69,8 +70,9 @@ class UserInstitutionalSubscriptionForm extends Form {
 				'\.' .
 				'[A-Z]{2,4}' .
 			'$/i'));
-		// Form was POSTed
+
 		$this->addCheck(new FormValidatorPost($this));
+		$this->addCheck(new FormValidatorCSRF($this));
 	}
 
 	/**
@@ -136,7 +138,7 @@ class UserInstitutionalSubscriptionForm extends Form {
 		// If provided ensure IP ranges have IP address format; IP addresses may contain wildcards
 		if ($ipRangeProvided) {	
 			import('classes.subscription.InstitutionalSubscription');
-			$this->addCheck(new FormValidatorArrayCustom($this, 'ipRanges', 'required', 'user.subscriptions.form.ipRangeValid', create_function('$ipRange, $regExp', 'return String::regexp_match($regExp, $ipRange);'),
+			$this->addCheck(new FormValidatorArrayCustom($this, 'ipRanges', 'required', 'user.subscriptions.form.ipRangeValid', create_function('$ipRange, $regExp', 'return PKPString::regexp_match($regExp, $ipRange);'),
 				array(
 					'/^' .
 					// IP4 address (with or w/o wildcards) or IP4 address range (with or w/o wildcards) or CIDR IP4 address

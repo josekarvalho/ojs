@@ -3,7 +3,8 @@
 /**
  * @file plugins/generic/announcementFeed/AnnouncementFeedGatewayPlugin.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class AnnouncementFeedGatewayPlugin
@@ -13,7 +14,7 @@
  *
  */
 
-import('classes.plugins.GatewayPlugin');
+import('lib.pkp.classes.plugins.GatewayPlugin');
 
 class AnnouncementFeedGatewayPlugin extends GatewayPlugin {
 	var $parentPluginName;
@@ -21,8 +22,9 @@ class AnnouncementFeedGatewayPlugin extends GatewayPlugin {
 	/**
 	 * Constructor
 	 */
-	function AnnouncementFeedGatewayPlugin($parentPluginName) {
+	function __construct($parentPluginName) {
 		$this->parentPluginName = $parentPluginName;
+		parent::__construct();
 	}
 
 	/**
@@ -53,26 +55,22 @@ class AnnouncementFeedGatewayPlugin extends GatewayPlugin {
 	 * Get the web feed plugin
 	 * @return object
 	 */
-	function &getAnnouncementFeedPlugin() {
-		$plugin =& PluginRegistry::getPlugin('generic', $this->parentPluginName);
-		return $plugin;
+	function getAnnouncementFeedPlugin() {
+		return PluginRegistry::getPlugin('generic', $this->parentPluginName);
 	}
 
 	/**
 	 * Override the builtin to get the correct plugin path.
 	 */
 	function getPluginPath() {
-		$plugin =& $this->getAnnouncementFeedPlugin();
-		return $plugin->getPluginPath();
+		return $this->getAnnouncementFeedPlugin()->getPluginPath();
 	}
 
 	/**
-	 * Override the builtin to get the correct template path.
-	 * @return string
+	 * @copydoc PKPPlugin::getTemplatePath
 	 */
-	function getTemplatePath() {
-		$plugin =& $this->getAnnouncementFeedPlugin();
-		return $plugin->getTemplatePath() . 'templates/';
+	function getTemplatePath($inCore = false) {
+		return $this->getAnnouncementFeedPlugin()->getTemplatePath($inCore) . 'templates/';
 	}
 
 	/**
@@ -81,31 +79,22 @@ class AnnouncementFeedGatewayPlugin extends GatewayPlugin {
 	 * @return boolean
 	 */
 	function getEnabled() {
-		$plugin =& $this->getAnnouncementFeedPlugin();
-		return $plugin->getEnabled(); // Should always be true anyway if this is loaded
-	}
-
-	/**
-	 * Get the management verbs for this plugin (override to none so that the parent
-	 * plugin can handle this)
-	 * @return array
-	 */
-	function getManagementVerbs() {
-		return array();
+		return $this->getAnnouncementFeedPlugin()->getEnabled();
 	}
 
 	/**
 	 * Handle fetch requests for this plugin.
+	 * @param $args array
+	 * @param $request PKPRequest
 	 */
-	function fetch($args) {
+	function fetch($args, $request) {
 		// Make sure we're within a Journal context
-		$request = $this->getRequest();
 		$journal = $request->getJournal();
 		if (!$journal) return false;
 
 		// Make sure announcements and plugin are enabled
 		$announcementsEnabled = $journal->getSetting('enableAnnouncements');
-		$announcementFeedPlugin =& $this->getAnnouncementFeedPlugin();
+		$announcementFeedPlugin = $this->getAnnouncementFeedPlugin();
 		if (!$announcementsEnabled || !$announcementFeedPlugin->getEnabled()) return false;
 
 		// Make sure the feed type is specified and valid
@@ -123,17 +112,16 @@ class AnnouncementFeedGatewayPlugin extends GatewayPlugin {
 		if (!isset($typeMap[$type])) return false;
 
 		// Get limit setting, if any
-		$limitRecentItems = $announcementFeedPlugin->getSetting($journal->getId(), 'limitRecentItems');
 		$recentItems = (int) $announcementFeedPlugin->getSetting($journal->getId(), 'recentItems');
 
 		$announcementDao = DAORegistry::getDAO('AnnouncementDAO');
 		$journalId = $journal->getId();
-		if ($limitRecentItems && $recentItems > 0) {
+		if ($recentItems > 0) {
 			import('lib.pkp.classes.db.DBResultRange');
 			$rangeInfo = new DBResultRange($recentItems, 1);
-			$announcements =& $announcementDao->getAnnouncementsNotExpiredByAssocId(ASSOC_TYPE_JOURNAL, $journalId, $rangeInfo);
+			$announcements = $announcementDao->getAnnouncementsNotExpiredByAssocId(ASSOC_TYPE_JOURNAL, $journalId, $rangeInfo);
 		} else {
-			$announcements =& $announcementDao->getAnnouncementsNotExpiredByAssocId(ASSOC_TYPE_JOURNAL, $journalId);
+			$announcements =  $announcementDao->getAnnouncementsNotExpiredByAssocId(ASSOC_TYPE_JOURNAL, $journalId);
 		}
 
 		// Get date of most recent announcement
@@ -146,7 +134,7 @@ class AnnouncementFeedGatewayPlugin extends GatewayPlugin {
 				$dateUpdated = $lastDateUpdated;
 			}
 		} else {
-			$mostRecentAnnouncement =& $announcementDao->getMostRecentAnnouncementByAssocId(ASSOC_TYPE_JOURNAL, $journalId);
+			$mostRecentAnnouncement = $announcementDao->getMostRecentAnnouncementByAssocId(ASSOC_TYPE_JOURNAL, $journalId);
 			$dateUpdated = $mostRecentAnnouncement->getDatetimePosted();
 			if (empty($lastDateUpdated) || (strtotime($dateUpdated) > strtotime($lastDateUpdated))) {
 				$announcementFeedPlugin->updateSetting($journal->getId(), 'dateUpdated', $dateUpdated, 'string');
@@ -157,11 +145,13 @@ class AnnouncementFeedGatewayPlugin extends GatewayPlugin {
 		$version = $versionDao->getCurrentVersion();
 
 		$templateMgr = TemplateManager::getManager($request);
-		$templateMgr->assign('ojsVersion', $version->getVersionString());
-		$templateMgr->assign('selfUrl', $request->getCompleteUrl());
-		$templateMgr->assign('dateUpdated', $dateUpdated);
-		$templateMgr->assign('announcements', $announcements->toArray());
-		$templateMgr->assign('journal', $journal);
+		$templateMgr->assign(array(
+			'ojsVersion' => $version->getVersionString(),
+			'selfUrl' => $request->getCompleteUrl(),
+			'dateUpdated' => $dateUpdated,
+			'announcements' => $announcements->toArray(),
+			'journal' => $journal,
+		));
 
 		$templateMgr->display($this->getTemplatePath() . $typeMap[$type], $mimeTypeMap[$type]);
 

@@ -3,7 +3,8 @@
 /**
  * @file classes/subscription/Subscription.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class Subscription
@@ -30,8 +31,8 @@ define('SUBSCRIPTION_YEAR_OFFSET_FUTURE',	'+10');
 
 class Subscription extends DataObject {
 
-	function Subscription() {
-		parent::DataObject();
+	function __construct() {
+		parent::__construct();
 	}
 
 	//
@@ -134,7 +135,7 @@ class Subscription extends DataObject {
 
 	/**
 	 * Check whether the subscription type is non-expiring for the subscription.
-	 * @return string
+	 * @return boolean
 	 */
 	function isNonExpiring() {
 		$subscriptionTypeDao = DAORegistry::getDAO('SubscriptionTypeDAO');

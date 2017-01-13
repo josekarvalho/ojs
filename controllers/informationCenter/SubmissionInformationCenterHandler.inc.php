@@ -3,7 +3,8 @@
 /**
  * @file controllers/informationCenter/SubmissionInformationCenterHandler.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class SubmissionInformationCenterHandler
@@ -18,14 +19,15 @@ class SubmissionInformationCenterHandler extends PKPSubmissionInformationCenterH
 	/**
 	 * Constructor
 	 */
-	function SubmissionInformationCenterHandler() {
-		parent::PKPSubmissionInformationCenterHandler();
+	function __construct() {
+		parent::__construct();
 	}
 
 	/**
 	 * Display the metadata tab.
 	 * @param $args array
 	 * @param $request PKPRequest
+	 * @return JSONMessage JSON object
 	 */
 	function metadata($args, $request) {
 		$this->setupTemplate($request);
@@ -41,14 +43,14 @@ class SubmissionInformationCenterHandler extends PKPSubmissionInformationCenterH
 		$submissionMetadataViewForm = new SubmissionMetadataViewForm($this->_submission->getId(), null, $params);
 		$submissionMetadataViewForm->initData($args, $request);
 
-		$json = new JSONMessage(true, $submissionMetadataViewForm->fetch($request));
-		return $json->getString();
+		return new JSONMessage(true, $submissionMetadataViewForm->fetch($request));
 	}
 
 	/**
 	 * Save the metadata tab.
 	 * @param $args array
 	 * @param $request PKPRequest
+	 * @return JSONMessage JSON object
 	 */
 	function saveForm($args, $request) {
 		$this->setupTemplate($request);
@@ -56,21 +58,17 @@ class SubmissionInformationCenterHandler extends PKPSubmissionInformationCenterH
 		import('controllers.modals.submissionMetadata.form.SubmissionMetadataViewForm');
 		$submissionMetadataViewForm = new SubmissionMetadataViewForm($this->_submission->getId());
 
-		$json = new JSONMessage();
-
 		// Try to save the form data.
-		$submissionMetadataViewForm->readInputData($request);
+		$submissionMetadataViewForm->readInputData();
 		if($submissionMetadataViewForm->validate()) {
 			$submissionMetadataViewForm->execute($request);
 			// Create trivial notification.
 			$notificationManager = new NotificationManager();
 			$user = $request->getUser();
 			$notificationManager->createTrivialNotification($user->getId(), NOTIFICATION_TYPE_SUCCESS, array('contents' => __('notification.savedSubmissionMetadata')));
-		} else {
-			$json->setStatus(false);
+			return new JSONMessage();
 		}
-
-		return $json->getString();
+		$json->setStatus(false);
 	}
 
 	/**
@@ -80,6 +78,7 @@ class SubmissionInformationCenterHandler extends PKPSubmissionInformationCenterH
 	 */
 	function _logEvent ($request, $eventType) {
 		// Get the log event message
+		$logMessage = null; // Suppress scrutinizer warn
 		switch($eventType) {
 			case SUBMISSION_LOG_NOTE_POSTED:
 				$logMessage = 'informationCenter.history.notePosted';

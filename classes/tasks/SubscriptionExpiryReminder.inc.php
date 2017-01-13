@@ -3,7 +3,8 @@
 /**
  * @file classes/tasks/SubscriptionExpiryReminder.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class SubscriptionExpiryReminder
@@ -19,8 +20,15 @@ class SubscriptionExpiryReminder extends ScheduledTask {
 	/**
 	 * Constructor.
 	 */
-	function SubscriptionExpiryReminder() {
-		$this->ScheduledTask();
+	function __construct() {
+		parent::__construct();
+	}
+
+	/**
+	 * @see ScheduledTask::getName()
+	 */
+	function getName() {
+		return __('admin.scheduledTask.subscriptionExpiryReminder');
 	}
 
 	function sendReminder ($subscription, $journal, $emailKey) {
@@ -29,7 +37,6 @@ class SubscriptionExpiryReminder extends ScheduledTask {
 		$subscriptionTypeDao = DAORegistry::getDAO('SubscriptionTypeDAO');
 
 		$journalName = $journal->getLocalizedName();
-		$journalId = $journal->getId();
 		$user = $userDao->getById($subscription->getUserId());
 		if (!isset($user)) return false;
 
@@ -38,7 +45,6 @@ class SubscriptionExpiryReminder extends ScheduledTask {
 		$subscriptionName = $journal->getSetting('subscriptionName');
 		$subscriptionEmail = $journal->getSetting('subscriptionEmail');
 		$subscriptionPhone = $journal->getSetting('subscriptionPhone');
-		$subscriptionFax = $journal->getSetting('subscriptionFax');
 		$subscriptionMailingAddress = $journal->getSetting('subscriptionMailingAddress');
 
 		$subscriptionContactSignature = $subscriptionName;
@@ -49,13 +55,10 @@ class SubscriptionExpiryReminder extends ScheduledTask {
 			$subscriptionContactSignature .= "\n" . $subscriptionMailingAddress;
 		}
 		if ($subscriptionPhone != '') {
-			$subscriptionContactSignature .= "\n" . AppLocale::Translate('user.phone') . ': ' . $subscriptionPhone;
-		}
-		if ($subscriptionFax != '') {
-			$subscriptionContactSignature .= "\n" . AppLocale::Translate('user.fax') . ': ' . $subscriptionFax;
+			$subscriptionContactSignature .= "\n" . __('user.phone') . ': ' . $subscriptionPhone;
 		}
 
-		$subscriptionContactSignature .= "\n" . AppLocale::Translate('user.email') . ': ' . $subscriptionEmail;
+		$subscriptionContactSignature .= "\n" . __('user.email') . ': ' . $subscriptionEmail;
 
 		$paramArray = array(
 			'subscriberName' => $user->getFullName(),
@@ -67,7 +70,7 @@ class SubscriptionExpiryReminder extends ScheduledTask {
 		);
 
 		import('lib.pkp.classes.mail.MailTemplate');
-		$mail = new MailTemplate($emailKey, $journal->getPrimaryLocale());
+		$mail = new MailTemplate($emailKey, $journal->getPrimaryLocale(), $journal, false);
 		$mail->setReplyTo($subscriptionEmail, $subscriptionName);
 		$mail->addRecipient($user->getEmail(), $user->getFullName());
 		$mail->setSubject($mail->getSubject($journal->getPrimaryLocale()));
@@ -214,7 +217,10 @@ class SubscriptionExpiryReminder extends ScheduledTask {
 		}
 	}
 
-	function execute() {
+	/**
+	 * @see ScheduledTask::executeActions()
+	 */
+	protected function executeActions() {
 		$journalDao = DAORegistry::getDAO('JournalDAO');
 		$journals = $journalDao->getAll(true);
 

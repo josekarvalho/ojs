@@ -3,7 +3,8 @@
 /**
  * @file classes/article/AuthorDAO.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class AuthorDAO
@@ -21,8 +22,8 @@ class AuthorDAO extends PKPAuthorDAO {
 	/**
 	 * Constructor
 	 */
-	function AuthorDAO() {
-		parent::PKPAuthorDAO();
+	function __construct() {
+		parent::__construct();
 	}
 
 	/**
@@ -79,12 +80,12 @@ class AuthorDAO extends PKPAuthorDAO {
 	 * the first letter of the last name, for example:
 	 * $returnedArray['S'] gives array($misterSmithObject, $misterSmytheObject, ...)
 	 * Keys will appear in sorted order. Note that if journalId is null,
-	 * alphabetized authors for all journals are returned.
-	 * @param $journalId int
+	 * alphabetized authors for all enabled journals are returned.
+	 * @param $journalId int Optional journal ID to restrict results to
 	 * @param $initial An initial the last names must begin with
 	 * @param $rangeInfo Range information
 	 * @param $includeEmail Whether or not to include the email in the select distinct
-	 * @return array Authors ordered by sequence
+	 * @return DAOResultFactory Authors ordered by sequence
 	 */
 	function getAuthorsAlphabetizedByJournal($journalId = null, $initial = null, $rangeInfo = null, $includeEmail = false) {
 		$params = array(
@@ -94,7 +95,7 @@ class AuthorDAO extends PKPAuthorDAO {
 
 		if (isset($journalId)) $params[] = $journalId;
 		if (isset($initial)) {
-			$params[] = String::strtolower($initial) . '%';
+			$params[] = PKPString::strtolower($initial) . '%';
 			$initialSql = ' AND LOWER(aa.last_name) LIKE LOWER(?)';
 		} else {
 			$initialSql = '';
@@ -120,10 +121,11 @@ class AuthorDAO extends PKPAuthorDAO {
 				LEFT JOIN author_settings aspl ON (aa.author_id = aspl.author_id AND aspl.setting_name = ? AND aspl.locale = ?)
 				LEFT JOIN author_settings asl ON (aa.author_id = asl.author_id AND asl.setting_name = ? AND asl.locale = ?)
 				JOIN submissions a ON (a.submission_id = aa.submission_id AND a.status = ' . STATUS_PUBLISHED . ')
+				JOIN journals j ON (a.context_id = j.journal_id)
 				JOIN published_submissions pa ON (pa.submission_id = a.submission_id)
 				JOIN issues i ON (pa.issue_id = i.issue_id AND i.published = 1)
-			WHERE ' . (isset($journalId)?'a.context_id = ? AND ':'') . '
-				(aa.last_name IS NOT NULL AND aa.last_name <> \'\')' .
+			WHERE ' . (isset($journalId)?'j.journal_id = ?':'j.enabled = 1') . '
+				AND (aa.last_name IS NOT NULL AND aa.last_name <> \'\')' .
 				$initialSql . '
 			ORDER BY aa.last_name, aa.first_name',
 			$params,

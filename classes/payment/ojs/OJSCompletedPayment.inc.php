@@ -3,6 +3,7 @@
 /**
  * @file classes/payment/ojs/OJSCompletedPayment.inc.php
  *
+ * Copyright (c) 2014-2016 Simon Fraser University Library
  * Copyright (c) 2006-2009 Gunther Eysenbach, Juan Pablo Alperin, MJ Suhonos
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
@@ -25,8 +26,8 @@ class OJSCompletedPayment extends Payment {
 	/**
 	 * Constructor
 	 */
-	function OJSCompletedPayment() {
-		parent::Payment();
+	function __construct() {
+		parent::__construct();
 	}
 
 	//
@@ -229,9 +230,9 @@ class OJSCompletedPayment extends Payment {
 						$subscriptionType =& $subscriptionTypeDao->getSubscriptionType($gift->getAssocId());
 
 						if ($subscriptionType) {
-							return $subscriptionType->getSubscriptionTypeDescription();	
+							return $subscriptionType->getSubscriptionTypeDescription();
 						} else {
-							return __('payment.type.gift') . ' ' . __('payment.type.gift.subscription');								
+							return __('payment.type.gift') . ' ' . __('payment.type.gift.subscription');
 						}
 					}
 				}
@@ -333,7 +334,7 @@ class OJSCompletedPayment extends Payment {
 				$issueDao = DAORegistry::getDAO('IssueDAO');
 				$issue = $issueDao->getById($this->assocId, $this->journalId);
 				if (!$issue) return __('manager.payment.notFound');
-				return $issue->getIssueIdentification(false, true);
+				return $issue->getIssueIdentification();
 			case PAYMENT_TYPE_GIFT:
 				$giftDao = DAORegistry::getDAO('GiftDAO');
 				$gift =& $giftDao->getGift($this->assocId);

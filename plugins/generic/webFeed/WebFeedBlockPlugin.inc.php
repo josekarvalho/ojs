@@ -3,7 +3,8 @@
 /**
  * @file plugins/generic/webFeed/WebFeedBlockPlugin.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class WebFeedBlockPlugin
@@ -18,8 +19,8 @@ class WebFeedBlockPlugin extends BlockPlugin {
 	/** @var string Name of parent plugin */
 	var $parentPluginName;
 
-	function WebFeedBlockPlugin($parentPluginName) {
-		parent::BlockPlugin();
+	function __construct($parentPluginName) {
+		parent::__construct();
 		$this->parentPluginName = $parentPluginName;
 	}
 
@@ -59,16 +60,15 @@ class WebFeedBlockPlugin extends BlockPlugin {
 	 * @return array
 	 */
 	function getSupportedContexts() {
-		return array(BLOCK_CONTEXT_LEFT_SIDEBAR, BLOCK_CONTEXT_RIGHT_SIDEBAR);
+		return array(BLOCK_CONTEXT_SIDEBAR);
 	}
 
 	/**
 	 * Get the web feed plugin
-	 * @return object
+	 * @return WebFeedPlugin
 	 */
-	function &getWebFeedPlugin() {
-		$plugin =& PluginRegistry::getPlugin('generic', $this->parentPluginName);
-		return $plugin;
+	function getWebFeedPlugin() {
+		return PluginRegistry::getPlugin('generic', $this->parentPluginName);
 	}
 
 	/**
@@ -76,17 +76,14 @@ class WebFeedBlockPlugin extends BlockPlugin {
 	 * @return string
 	 */
 	function getPluginPath() {
-		$plugin =& $this->getWebFeedPlugin();
-		return $plugin->getPluginPath();
+		return $this->getWebFeedPlugin()->getPluginPath();
 	}
 
 	/**
-	 * Override the builtin to get the correct template path.
-	 * @return string
+	 * @copydoc PKPPlugin::getTemplatePath
 	 */
-	function getTemplatePath() {
-		$plugin =& $this->getWebFeedPlugin();
-		return $plugin->getTemplatePath() . 'templates/';
+	function getTemplatePath($inCore = false) {
+		return $this->getWebFeedPlugin()->getTemplatePath($inCore);
 	}
 
 	/**
@@ -95,20 +92,14 @@ class WebFeedBlockPlugin extends BlockPlugin {
 	 * @param $request PKPRequest
 	 * @return $string
 	 */
-	function getContents(&$templateMgr, $request = null) {
+	function getContents($templateMgr, $request = null) {
 		$journal = $request->getJournal();
-		if (!$journal) return '';
-
-		$plugin =& $this->getWebFeedPlugin();
-		$displayPage = $plugin->getSetting($journal->getId(), 'displayPage');
+		$plugin = $this->getWebFeedPlugin();
 		$issueDao = DAORegistry::getDAO('IssueDAO');
-		$currentIssue = $issueDao->getCurrent($journal->getId(), true);
-
-		if ($currentIssue) {
+		if ($issueDao->getCurrent($journal->getId(), true)) {
 			return parent::getContents($templateMgr, $request);
-		} else {
-			return '';
 		}
+		return '';
 	}
 }
 

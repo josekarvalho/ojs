@@ -3,7 +3,8 @@
 /**
  * @file plugins/generic/counter/CounterHandler.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class CounterHandler
@@ -23,8 +24,8 @@ class CounterHandler extends Handler {
 	/**
 	 * Constructor
 	 **/
-	function CounterHandler() {
-		parent::Handler();
+	function __construct() {
+		parent::__construct();
 	}
 	
 	/**
@@ -44,8 +45,12 @@ class CounterHandler extends Handler {
 	}
 
 	/**
-	* Internal function to collect structures for output
-	*/
+	 * Internal function to collect structures for output
+	 * @param $entries
+	 * @param $begin
+	 * @param $end
+	 * @return array
+	 */
 	function _arrangeEntries($entries, $begin, $end) {
 		$ret=null;
 
@@ -64,8 +69,8 @@ class CounterHandler extends Handler {
 
 
 	/**
-	* Internal function to assign information for the Counter part of a report
-	*/
+	 * Internal function to assign information for the Counter part of a report
+	 */
 	function _assignTemplateCounterXML($templateManager, $begin, $end='') {
 		$journal = Request::getJournal();
 		
@@ -311,7 +316,7 @@ class CounterHandler extends Handler {
 	}
 
 	/**
-	 * Validate that user has site admin privileges or journal manager priveleges.
+	 * Validate that user has site admin privileges or journal manager privileges.
 	 * Redirects to the user index page if not properly authenticated.
 	 * @param $canRedirect boolean Whether or not to redirect if the user cannot be validated; if not, the script simply terminates.
 	 */

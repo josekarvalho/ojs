@@ -3,7 +3,8 @@
 /**
  * @file classes/article/ArticleTombstoneManager.inc.php
  *
- * Copyright (c) 2000-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2000-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class ArticleTombstoneManager
@@ -17,13 +18,11 @@ class ArticleTombstoneManager {
 	/**
 	 * Constructor
 	 */
-	function ArticleTombstoneManager() {
+	function __construct() {
 	}
 
 	function insertArticleTombstone(&$article, &$journal) {
 		$sectionDao = DAORegistry::getDAO('SectionDAO');
-		$section = $sectionDao->getById($article->getSectionId());
-
 		$tombstoneDao = DAORegistry::getDAO('DataObjectTombstoneDAO'); /* @var $tombstoneDao DataObjectTombstoneDAO */
 		// delete article tombstone -- to ensure that there aren't more than one tombstone for this article
 		$tombstoneDao->deleteByDataObjectId($article->getId());

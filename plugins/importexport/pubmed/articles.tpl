@@ -1,7 +1,8 @@
 {**
  * plugins/importexport/pubmed/articles.tpl
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * List of articles to potentially export
@@ -9,7 +10,6 @@
  *}
 {strip}
 {assign var="pageTitle" value="plugins.importexport.pubmed.export.selectArticle"}
-{assign var="pageCrumbTitle" value="plugins.importexport.pubmed.export.selectArticle"}
 {include file="common/header.tpl"}
 {/strip}
 
@@ -38,6 +38,7 @@ function toggleChecked() {
 	{rdelim});
 </script>
 <form class="pkp_form" action="{plugin_url path="exportArticles"}" method="post" id="articlesForm">
+{csrf}
 <table class="listing">
 	<tr>
 		<td colspan="5" class="headseparator">&nbsp;</td>

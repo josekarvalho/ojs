@@ -3,7 +3,8 @@
 /**
  * @file plugins/blocks/information/InformationBlockPlugin.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class InformationBlockPlugin
@@ -41,13 +42,15 @@ class InformationBlockPlugin extends BlockPlugin {
 	/**
 	 * @see BlockPlugin::getContents
 	 */
-	function getContents(&$templateMgr, $request = null) {
+	function getContents($templateMgr, $request = null) {
 		$journal = $request->getJournal();
 		if (!$journal) return '';
 
-		$templateMgr->assign('forReaders', $journal->getLocalizedSetting('readerInformation'));
-		$templateMgr->assign('forAuthors', $journal->getLocalizedSetting('authorInformation'));
-		$templateMgr->assign('forLibrarians', $journal->getLocalizedSetting('librarianInformation'));
+		$templateMgr->assign(array(
+			'forReaders' => $journal->getLocalizedSetting('readerInformation'),
+			'forAuthors' => $journal->getLocalizedSetting('authorInformation'),
+			'forLibrarians' => $journal->getLocalizedSetting('librarianInformation'),
+		));
 		return parent::getContents($templateMgr, $request);
 	}
 }

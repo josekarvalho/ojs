@@ -3,7 +3,8 @@
 /**
  * @file plugins/generic/lucene/LucenePlugin.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class LucenePlugin
@@ -45,8 +46,8 @@ class LucenePlugin extends GenericPlugin {
 	/**
 	 * Constructor
 	 */
-	function LucenePlugin() {
-		parent::GenericPlugin();
+	function __construct() {
+		parent::__construct();
 	}
 
 
@@ -92,7 +93,7 @@ class LucenePlugin extends GenericPlugin {
 	function &getMailTemplate($emailKey, $journal = null) {
 		if (!isset($this->_mailTemplates[$emailKey])) {
 			import('lib.pkp.classes.mail.MailTemplate');
-			$mailTemplate = new MailTemplate($emailKey, null, null, $journal, true, true);
+			$mailTemplate = new MailTemplate($emailKey, null, $journal, true, true);
 			$this->_mailTemplates[$emailKey] =& $mailTemplate;
 		}
 		return $this->_mailTemplates[$emailKey];
@@ -128,9 +129,9 @@ class LucenePlugin extends GenericPlugin {
 			HookRegistry::register('ArticleSearch::getResultSetOrderingOptions', array($this, 'callbackGetResultSetOrderingOptions'));
 			HookRegistry::register('SubmissionSearch::retrieveResults', array($this, 'callbackRetrieveResults'));
 			HookRegistry::register('ArticleSearchIndex::articleMetadataChanged', array($this, 'callbackArticleMetadataChanged'));
-			HookRegistry::register('ArticleSearchIndex::articleFileChanged', array($this, 'callbackArticleFileChanged'));
-			HookRegistry::register('ArticleSearchIndex::articleFileDeleted', array($this, 'callbackArticleFileDeleted'));
-			HookRegistry::register('ArticleSearchIndex::articleFilesChanged', array($this, 'callbackArticleFilesChanged'));
+			HookRegistry::register('ArticleSearchIndex::submissionFileChanged', array($this, 'callbackSubmissionFileChanged'));
+			HookRegistry::register('ArticleSearchIndex::submissionFileDeleted', array($this, 'callbackSubmissionFileDeleted'));
+			HookRegistry::register('ArticleSearchIndex::submissionFilesChanged', array($this, 'callbackSubmissionFilesChanged'));
 			HookRegistry::register('ArticleSearchIndex::articleDeleted', array($this, 'callbackArticleDeleted'));
 			HookRegistry::register('ArticleSearchIndex::articleChangesFinished', array($this, 'callbackArticleChangesFinished'));
 			HookRegistry::register('ArticleSearchIndex::rebuildIndex', array($this, 'callbackRebuildIndex'));
@@ -161,8 +162,10 @@ class LucenePlugin extends GenericPlugin {
 			$username = $this->getSetting(0, 'username');
 			$password = $this->getSetting(0, 'password');
 			$instId = $this->getSetting(0, 'instId');
+			$useProxySettings = $this->getSetting(0, 'useProxySettings');
+			if (!$useProxySettings) $useProxySettings = false;
 
-			$this->_solrWebService = new SolrWebService($searchHandler, $username, $password, $instId);
+			$this->_solrWebService = new SolrWebService($searchHandler, $username, $password, $instId, $useProxySettings);
 		}
 		return $success;
 	}
@@ -210,34 +213,22 @@ class LucenePlugin extends GenericPlugin {
 	}
 
 	/**
-	 * @see Plugin::getTemplatePath()
+	 * @copydoc PKPPlugin::getTemplatePath
 	 */
-	function getTemplatePath() {
-		return parent::getTemplatePath() . 'templates/';
+	function getTemplatePath($inCore = false) {
+		return parent::getTemplatePath($inCore) . 'templates/';
 	}
 
 	//
 	// Implement template methods from GenericPlugin.
 	//
-	/**
-	 * @see GenericPlugin::getManagementVerbs()
-	 */
-	function getManagementVerbs() {
-		$verbs = parent::getManagementVerbs();
-		if ($this->getEnabled()) {
-			$verbs[] = array('settings', __('plugins.generic.lucene.settings'));
-		}
-		return $verbs;
-	}
-
  	/**
-	 * @see Plugin::manage()
+	 * @copydoc Plugin::manage()
 	 */
-	function manage($verb, $args, &$message, &$messageParams, &$pluginModalContent = null) {
-		if (!parent::manage($verb, $args, $message, $messageParams)) return false;
-		$request = $this->getRequest();
+	function manage($args, $request) {
+		if (!parent::manage($args, $request)) return false;
 
-		switch ($verb) {
+		switch (array_shift($args)) {
 			case 'settings':
 				// Prepare the template manager.
 				$templateMgr = TemplateManager::getManager($request);
@@ -565,30 +556,30 @@ class LucenePlugin extends GenericPlugin {
 	}
 
 	/**
-	 * @see ArticleSearchIndex::articleFilesChanged()
+	 * @see ArticleSearchIndex::submissionFilesChanged()
 	 */
-	function callbackArticleFilesChanged($hookName, $params) {
-		assert($hookName == 'ArticleSearchIndex::articleFilesChanged');
+	function callbackSubmissionFilesChanged($hookName, $params) {
+		assert($hookName == 'ArticleSearchIndex::submissionFilesChanged');
 		list($article) = $params; /* @var $article Article */
 		$this->_solrWebService->markArticleChanged($article->getId());
 		return true;
 	}
 
 	/**
-	 * @see ArticleSearchIndex::articleFileChanged()
+	 * @see ArticleSearchIndex::submissionFileChanged()
 	 */
-	function callbackArticleFileChanged($hookName, $params) {
-		assert($hookName == 'ArticleSearchIndex::articleFileChanged');
+	function callbackSubmissionFileChanged($hookName, $params) {
+		assert($hookName == 'ArticleSearchIndex::submissionFileChanged');
 		list($articleId, $type, $fileId) = $params;
 		$this->_solrWebService->markArticleChanged($articleId);
 		return true;
 	}
 
 	/**
-	 * @see ArticleSearchIndex::articleFileDeleted()
+	 * @see ArticleSearchIndex::submissionFileDeleted()
 	 */
-	function callbackArticleFileDeleted($hookName, $params) {
-		assert($hookName == 'ArticleSearchIndex::articleFileDeleted');
+	function callbackSubmissionFileDeleted($hookName, $params) {
+		assert($hookName == 'ArticleSearchIndex::submissionFileDeleted');
 		list($articleId, $type, $assocId) = $params;
 		$this->_solrWebService->markArticleChanged($articleId);
 		return true;
@@ -680,7 +671,7 @@ class LucenePlugin extends GenericPlugin {
 	// Form hook implementations.
 	//
 	/**
-	 * @see Form::Form()
+	 * @see Form::__construct()
 	 */
 	function callbackSectionFormConstructor($hookName, $params) {
 		// Check whether we got a valid ranking boost option.
@@ -768,7 +759,7 @@ class LucenePlugin extends GenericPlugin {
 
 		// Assign our private stylesheet.
 		$templateMgr = $params[0];
-		$templateMgr->addStylesheet($request->getBaseUrl() . '/' . $this->getPluginPath() . '/templates/lucene.css');
+		$templateMgr->addStylesheet('lucene', $request->getBaseUrl() . '/' . $this->getPluginPath() . '/templates/lucene.css');
 
 		// Instant search.
 		if ($this->getSetting(0, 'instantSearch')) {
@@ -1088,7 +1079,7 @@ class LucenePlugin extends GenericPlugin {
 
 	/**
 	 * Send an email to the site's tech admin
-	 * warning that an indexing error has occured.
+	 * warning that an indexing error has occurred.
 	 *
 	 * @param $error array An array of article ids.
 	 * @param $journal Journal A journal object.

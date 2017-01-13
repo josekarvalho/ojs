@@ -3,7 +3,8 @@
 /**
  * @file controllers/tab/settings/reviewStage/form/ReviewStageForm.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class ReviewStageForm
@@ -19,15 +20,14 @@ class ReviewStageForm extends PKPReviewStageForm {
 	/**
 	 * Constructor.
 	 */
-	function ReviewStageForm($wizardMode = false) {
-		parent::PKPReviewStageForm(
+	function __construct($wizardMode = false) {
+		parent::__construct(
 			$wizardMode,
 			array(
 				'restrictReviewerFileAccess' => 'bool',
 				'reviewerAccessKeysEnabled' => 'bool',
-				'mailSubmissionsToReviewers' => 'bool',
 			),
-			'controllers/tab/settings/reviewStage/form/ojsReviewStageForm.tpl'
+			'controllers/tab/settings/reviewStage/form/reviewStageForm.tpl'
 		);
 	}
 }

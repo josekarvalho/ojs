@@ -3,7 +3,8 @@
 /**
  * @file plugins/oaiMetadataFormats/rfc1807/OAIMetadataFormatPlugin_RFC1807.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class OAIMetadataFormatPlugin_RFC1807
@@ -38,15 +39,15 @@ class OAIMetadataFormatPlugin_RFC1807 extends OAIMetadataFormatPlugin {
 		return 'OAIMetadataFormat_RFC1807';
 	}
 
-	function getMetadataPrefix() {
+	static function getMetadataPrefix() {
 		return 'rfc1807';
 	}
 
-	function getSchema() {
+	static function getSchema() {
 		return 'http://www.openarchives.org/OAI/1.1/rfc1807.xsd';
 	}
 
-	function getNamespace() {
+	static function getNamespace() {
 		return 'http://info.internet.isi.edu:80/in-notes/rfc/files/rfc1807.txt';
 	}
 }

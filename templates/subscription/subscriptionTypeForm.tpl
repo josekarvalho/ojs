@@ -1,7 +1,8 @@
 {**
  * templates/subscription/subscriptionTypeForm.tpl
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * Subscription type form under journal management.
@@ -15,7 +16,6 @@
 	{assign var="pageTitle" value="manager.subscriptionTypes.create"}
 {/if}
 {assign var="pageId" value="manager.subscriptionTypes.subscriptionTypeForm"}
-{assign var="pageCrumbTitle" value=$subscriptionTypeTitle}
 {include file="common/header.tpl"}
 {/strip}
 
@@ -33,6 +33,7 @@
 	{rdelim});
 </script>
 <form class="pkp_form" id="subscriptionType" method="post" action="{url op="updateSubscriptionType"}">
+{csrf}
 {if $typeId}
 <input type="hidden" name="typeId" value="{$typeId|escape}" />
 {/if}

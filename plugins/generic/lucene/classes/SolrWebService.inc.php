@@ -3,7 +3,8 @@
 /**
  * @file plugins/generic/lucene/classes/SolrWebService.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class SolrWebService
@@ -58,7 +59,7 @@ class SolrWebService extends XmlWebService {
 	/** @var string The unique ID identifying this OJS installation to the solr server. */
 	var $_instId;
 
-	/** @var string A description of the last error or message that occured when calling the service. */
+	/** @var string A description of the last error or message that occurred when calling the service. */
 	var $_serviceMessage = '';
 
 	/** @var FileCache A cache containing the available search fields. */
@@ -70,6 +71,8 @@ class SolrWebService extends XmlWebService {
 	/** @var array An issue cache. */
 	var $_issueCache;
 
+	/** @var boolean Whether the proxy settings in the config.inc.php should be considered for the web service request. */
+	var $_useProxySettings = false;
 
 	/**
 	 * Constructor
@@ -80,9 +83,10 @@ class SolrWebService extends XmlWebService {
 	 * @param $password string The corresponding password.
 	 * @param $instId string The unique ID of this OJS installation to partition
 	 *  a shared index.
+	 *  @param $useProxy boolean Whether the proxy settings from config.inc.php should be considered.
 	 */
-	function SolrWebService($searchHandler, $username, $password, $instId) {
-		parent::XmlWebService();
+	function __construct($searchHandler, $username, $password, $instId, $useProxy = false) {
+		parent::__construct();
 
 		// Configure the web service.
 		$this->setAuthUsername($username);
@@ -101,6 +105,7 @@ class SolrWebService extends XmlWebService {
 		// Set the installation ID.
 		assert(is_string($instId) && !empty($instId));
 		$this->_instId = $instId;
+		$this->_useProxySettings = $useProxy;
 	}
 
 
@@ -211,7 +216,7 @@ class SolrWebService extends XmlWebService {
 	 *  updates to the given journal.
 	 *
 	 * @return integer The number of articles processed or
-	 *  null if an error occured. After an error the method
+	 *  null if an error occurred. After an error the method
 	 *  SolrWebService::getServiceMessage() will return details
 	 *  of the error.
 	 */
@@ -243,7 +248,7 @@ class SolrWebService extends XmlWebService {
 	 *  articles from the given journal.
 	 *
 	 * @return integer The number of articles processed or
-	 *  null if an error occured. After an error the method
+	 *  null if an error occurred. After an error the method
 	 *  SolrWebService::getServiceMessage() will return details
 	 *  of the error.
 	 */
@@ -302,7 +307,7 @@ class SolrWebService extends XmlWebService {
 	 *  The keys in the "scoredResults" sub-array are scores (1-9999) and the
 	 *  values are article IDs. The alternative spelling sub-array returns
 	 *  an alternative query string (if any) and the number of hits for this
-	 *  string. Null if an error occured while querying the server.
+	 *  string. Null if an error occurred while querying the server.
 	 */
 	function retrieveResults(&$searchRequest, &$totalResults) {
 		// Construct the main query.
@@ -966,14 +971,14 @@ class SolrWebService extends XmlWebService {
 	 * Make a request
 	 *
 	 * @param $url string The request URL
-	 * @param $params array request parameters
+	 * @param $params mixed array (key value pairs) or string request parameters
 	 * @param $method string GET or POST
 	 *
 	 * @return DOMXPath An XPath object with the response loaded. Null if an error occurred.
 	 *  See _serviceMessage for more details about the error.
 	 */
 	function &_makeRequest($url, $params = array(), $method = 'GET') {
-		$webServiceRequest = new WebServiceRequest($url, $params, $method);
+		$webServiceRequest = new WebServiceRequest($url, $params, $method, $this->_useProxySettings);
 		if ($method == 'POST') {
 			$webServiceRequest->setHeader('Content-Type', 'text/xml; charset=utf-8');
 		}
@@ -1018,7 +1023,7 @@ class SolrWebService extends XmlWebService {
 			'search' => array(
 				'localized' => array(
 					'title', 'abstract', 'discipline', 'subject',
-					'type', 'coverage', 'suppFiles'
+					'type', 'coverage',
 				),
 				'multiformat' => array(
 					'galleyFullText'
@@ -1234,7 +1239,7 @@ class SolrWebService extends XmlWebService {
 	 *  the XML list that are marked for deletion.
 	 *
 	 * @return integer The number of articles processed or
-	 *  null if an error occured.
+	 *  null if an error occurred.
 	 *
 	 *  After an error the method SolrWebService::getServiceMessage()
 	 *  will return details of the error.
@@ -1412,16 +1417,13 @@ class SolrWebService extends XmlWebService {
 		}
 
 		// Add subjects and subject classes.
-		$subjectClasses = $article->getSubjectClass(null);
 		$subjects = $article->getSubject(null);
-		if (!empty($subjectClasses) || !empty($subjects)) {
+		if (!empty($subjects)) {
 			$subjectList =& XMLCustomWriter::createElement($articleDoc, 'subjectList');
-			if (!is_array($subjectClasses)) $subjectClasses = array();
 			if (!is_array($subjects)) $subjects = array();
-			$locales = array_unique(array_merge(array_keys($subjectClasses), array_keys($subjects)));
+			$locales = array_keys($subjects);
 			foreach($locales as $locale) {
 				$subject = '';
-				if (isset($subjectClasses[$locale])) $subject .= $subjectClasses[$locale];
 				if (isset($subjects[$locale])) {
 					if (!empty($subject)) $subject .= ' ';
 					$subject .= $subjects[$locale];
@@ -1444,28 +1446,13 @@ class SolrWebService extends XmlWebService {
 		}
 
 		// Add coverage.
-		$coverageGeo = $article->getCoverageGeo(null);
-		$coverageChron = $article->getCoverageChron(null);
-		$coverageSample = $article->getCoverageSample(null);
-		if (!empty($coverageGeo) || !empty($coverageChron) || !empty($coverageSample)) {
+		$coverage = (array) $article->getCoverage(null);
+		if (!empty($coverage)) {
 			$coverageList =& XMLCustomWriter::createElement($articleDoc, 'coverageList');
-			if (!is_array($coverageGeo)) $coverageGeo = array();
-			if (!is_array($coverageChron)) $coverageChron = array();
-			if (!is_array($coverageSample)) $coverageSample = array();
-			$locales = array_unique(array_merge(array_keys($coverageGeo), array_keys($coverageChron), array_keys($coverageSample)));
-			foreach($locales as $locale) {
-				$coverage = '';
-				if (isset($coverageGeo[$locale])) $coverage .= $coverageGeo[$locale];
-				if (isset($coverageChron[$locale])) {
-					if (!empty($coverage)) $coverage .= '; ';
-					$coverage .= $coverageChron[$locale];
-				}
-				if (isset($coverageSample[$locale])) {
-					if (!empty($coverage)) $coverage .= '; ';
-					$coverage .= $coverageSample[$locale];
-				}
-				$coverageNode =& XMLCustomWriter::createChildWithText($articleDoc, $coverageList, 'coverage', $coverage);
+			foreach($coverage as $locale => $coverageLocalized) {
+				$coverageNode =& XMLCustomWriter::createChildWithText($articleDoc, $coverageList, 'coverage', $coverageLocalized);
 				XMLCustomWriter::setAttribute($coverageNode, 'locale', $locale);
+				unset($coverageNode);
 			}
 			XMLCustomWriter::appendChild($articleNode, $coverageList);
 		}
@@ -1552,77 +1539,6 @@ class SolrWebService extends XmlWebService {
 			}
 			XMLCustomWriter::appendChild($galleyOuterNode, $cdataNode);
 			XMLCustomWriter::appendChild($articleNode, $galleyOuterNode);
-		}
-
-		// Add supplementary files
-		$fileDao = DAORegistry::getDAO('SuppFileDAO');
-		$suppFiles =& $fileDao->getSuppFilesByArticle($article->getId());
-		$suppFileList = null;
-		foreach ($suppFiles as $suppFile) { /* @var $suppFile SuppFile */
-			// Try to map the supp-file language to a PKP locale.
-			$locale = null;
-			$language = $suppFile->getLanguage();
-			if (strlen($language) == 2) {
-				$language = AppLocale::get3LetterFrom2LetterIsoLanguage($language);
-			}
-			if (strlen($language) == 3) {
-				$locale = AppLocale::getLocaleFrom3LetterIso($language);
-			}
-			if (!AppLocale::isLocaleValid($locale)) {
-				$locale = 'unknown';
-			}
-
-			$suppFileUrl = $router->url($request, $journal->getPath(), 'article', 'downloadSuppFile', array(intval($article->getId()), intval($suppFile->getId())));
-
-			if (!empty($locale) && !empty($suppFileUrl)) {
-				if (is_null($suppFileList)) {
-					$suppFileList =& XMLCustomWriter::createElement($articleDoc, 'suppFileList');
-				}
-				$suppFileNode =& XMLCustomWriter::createElement($articleDoc, 'suppFile');
-				XMLCustomWriter::setAttribute($suppFileNode, 'locale', $locale);
-				XMLCustomWriter::setAttribute($suppFileNode, 'fileName', $suppFileUrl);
-				XMLCustomWriter::appendChild($suppFileList, $suppFileNode);
-
-				// Add supp file meta-data.
-				$suppFileMetadata = array(
-					'title' => $suppFile->getTitle(null),
-					'creator' => $suppFile->getCreator(null),
-					'subject' => $suppFile->getSubject(null),
-					'typeOther' => $suppFile->getTypeOther(null),
-					'description' => $suppFile->getDescription(null),
-					'source' => $suppFile->getSource(null)
-				);
-				foreach($suppFileMetadata as $field => $data) {
-					if (!empty($data)) {
-						$suppFileMDListNode =& XMLCustomWriter::createElement($articleDoc, $field . 'List');
-						foreach($data as $locale => $value) {
-							$suppFileMDNode =& XMLCustomWriter::createChildWithText($articleDoc, $suppFileMDListNode, $field, $value);
-							XMLCustomWriter::setAttribute($suppFileMDNode, 'locale', $locale);
-							unset($suppFileMDNode);
-						}
-						XMLCustomWriter::appendChild($suppFileNode, $suppFileMDListNode);
-						unset($suppFileMDListNode);
-					}
-				}
-			}
-		}
-
-		// Wrap the suppFile XML as CDATA.
-		if (!is_null($suppFileList)) {
-			if (is_callable(array($articleDoc, 'saveXml'))) {
-				$suppFileXml = $articleDoc->saveXml($suppFileList);
-			} else {
-				$suppFileXml = $suppFileList->toXml();
-			}
-			$suppFileOuterNode =& XMLCustomWriter::createElement($articleDoc, 'suppFile-xml');
-			if (is_callable(array($articleDoc, 'createCDATASection'))) {
-				$cdataNode = $articleDoc->createCDATASection($suppFileXml);
-			} else {
-				$cdataNode = new XMLNode();
-				$cdataNode->setValue('<![CDATA[' . $suppFileXml . ']]>');
-			}
-			XMLCustomWriter::appendChild($suppFileOuterNode, $cdataNode);
-			XMLCustomWriter::appendChild($articleNode, $suppFileOuterNode);
 		}
 	}
 
@@ -1794,9 +1710,9 @@ class SolrWebService extends XmlWebService {
 		if (is_null($queryKeywords)) {
 			// Query keywords.
 			$queryKeywords = array(
-				String::strtoupper(__('search.operator.not')) => 'NOT',
-				String::strtoupper(__('search.operator.and')) => 'AND',
-				String::strtoupper(__('search.operator.or')) => 'OR'
+				PKPString::strtoupper(__('search.operator.not')) => 'NOT',
+				PKPString::strtoupper(__('search.operator.and')) => 'AND',
+				PKPString::strtoupper(__('search.operator.or')) => 'OR'
 			);
 		}
 
@@ -1808,7 +1724,7 @@ class SolrWebService extends XmlWebService {
 
 		// Translate the search phrase.
 		foreach($translationTable as $translateFrom => $translateTo) {
-			$searchPhrase = String::regexp_replace("/(^|\s)$translateFrom(\s|$)/i", "\\1$translateTo\\2", $searchPhrase);
+			$searchPhrase = PKPString::regexp_replace("/(^|\s)$translateFrom(\s|$)/i", "\\1$translateTo\\2", $searchPhrase);
 		}
 
 		return $searchPhrase;
@@ -1845,7 +1761,7 @@ class SolrWebService extends XmlWebService {
 			$params = array();
 			foreach ($subQueries as $fieldList => $searchPhrase) {
 				// Construct the sub-query and add it to the search query and params.
-				$params = $this->_addSubquery($fieldList, $searchPhrase, $params, true);
+				$params = $this->_addSubquery($fieldList, $searchPhrase, $params);
 			}
 		}
 
@@ -1934,12 +1850,12 @@ class SolrWebService extends XmlWebService {
 		// Check whether the suggestion really concerns the
 		// last word of the user input.
 		if (!(isset($startOffset) && isset($endOffset)
-			&& String::strlen($userInput) == $endOffset)) return array();
+			&& PKPString::strlen($userInput) == $endOffset)) return array();
 
 		// Replace the last word in the user input
 		// with the suggestions maintaining case.
 		foreach($suggestions as &$suggestion) {
-			$suggestion = $userInput . String::substr($suggestion, $endOffset - $startOffset);
+			$suggestion = $userInput . PKPString::substr($suggestion, $endOffset - $startOffset);
 		}
 		return $suggestions;
 	}
@@ -1965,10 +1881,10 @@ class SolrWebService extends XmlWebService {
 		// facet results. This may be an invalid query
 		// but edismax will deal gracefully with syntax
 		// errors.
-		$userInput = String::substr($userInput, 0, -String::strlen($facetPrefix));
+		$userInput = PKPString::substr($userInput, 0, -PKPString::strlen($facetPrefix));
 		switch ($fieldName) {
 			case 'query':
-				// The 'query' filter goes agains all fields.
+				// The 'query' filter goes against all fields.
 				$articleSearch = new ArticleSearch();
 				$solrFields = array_values($articleSearch->getIndexFieldMap());
 				break;
@@ -1997,7 +1913,7 @@ class SolrWebService extends XmlWebService {
 		} else {
 			$params['facet.field'] = $fieldName . '_spell';
 		}
-		$facetPrefixLc = String::strtolower($facetPrefix);
+		$facetPrefixLc = PKPString::strtolower($facetPrefix);
 		$params['facet.prefix'] = $facetPrefixLc;
 
 		// Make the request.
@@ -2017,7 +1933,7 @@ class SolrWebService extends XmlWebService {
 		foreach($termSuggestions as $termSuggestion) {
 			// Restore case if possible.
 			if (strpos($termSuggestion, $facetPrefixLc) === 0) {
-				$termSuggestion = $facetPrefix . String::substr($termSuggestion, String::strlen($facetPrefix));
+				$termSuggestion = $facetPrefix . PKPString::substr($termSuggestion, PKPString::strlen($facetPrefix));
 			}
 			$suggestions[] = $userInput . $termSuggestion;
 		}
@@ -2047,7 +1963,7 @@ class SolrWebService extends XmlWebService {
 		// Only index published articles.
 		if (!$issue->getPublished() || $article->getStatus() != STATUS_PUBLISHED) return false;
 
-		// Make sure the requesting party is authorized to acces the article/issue.
+		// Make sure the requesting party is authorized to access the article/issue.
 		import('classes.issue.IssueAction');
 		$issueAction = new IssueAction();
 		$subscriptionRequired = $issueAction->subscriptionRequired($issue, $journal);

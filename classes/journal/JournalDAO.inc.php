@@ -3,7 +3,8 @@
 /**
  * @file classes/journal/JournalDAO.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class JournalDAO
@@ -24,8 +25,8 @@ class JournalDAO extends ContextDAO {
 	/**
 	 * Constructor
 	 */
-	function JournalDAO() {
-		parent::ContextDAO();
+	function __construct() {
+		parent::__construct();
 	}
 
 	/**
@@ -50,46 +51,23 @@ class JournalDAO extends ContextDAO {
 	}
 
 	/**
-	 * Insert a new journal.
-	 * @param $journal Journal
-	 */
-	function insertObject(&$journal) {
-		$this->update(
-			'INSERT INTO journals
-				(path, seq, enabled, primary_locale)
-				VALUES
-				(?, ?, ?, ?)',
-			array(
-				$journal->getPath(),
-				$journal->getSequence() == null ? 0 : $journal->getSequence(),
-				$journal->getEnabled() ? 1 : 0,
-				$journal->getPrimaryLocale()
-			)
-		);
-
-		$journal->setId($this->getInsertId());
-		return $journal->getId();
-	}
-
-	/**
 	 * Update an existing journal.
 	 * @param $journal Journal
 	 */
-	function updateObject(&$journal) {
+	function updateObject($journal) {
 		return $this->update(
 			'UPDATE journals
-				SET
-					path = ?,
-					seq = ?,
-					enabled = ?,
-					primary_locale = ?
-				WHERE journal_id = ?',
+			SET	path = ?,
+				seq = ?,
+				enabled = ?,
+				primary_locale = ?
+			WHERE journal_id = ?',
 			array(
 				$journal->getPath(),
-				$journal->getSequence(),
+				(float) $journal->getSequence(),
 				$journal->getEnabled() ? 1 : 0,
 				$journal->getPrimaryLocale(),
-				$journal->getId()
+				(int) $journal->getId()
 			)
 		);
 	}
@@ -109,10 +87,7 @@ class JournalDAO extends ContextDAO {
 		$issueDao->deleteByJournalId($journalId);
 
 		$emailTemplateDao = DAORegistry::getDAO('EmailTemplateDAO');
-		$emailTemplateDao->deleteEmailTemplatesByJournal($journalId);
-
-		$rtDao = DAORegistry::getDAO('RTDAO');
-		$rtDao->deleteVersionsByJournal($journalId);
+		$emailTemplateDao->deleteEmailTemplatesByContext($journalId);
 
 		$subscriptionDao = DAORegistry::getDAO('IndividualSubscriptionDAO');
 		$subscriptionDao->deleteSubscriptionsByJournal($journalId);
@@ -169,6 +144,10 @@ class JournalDAO extends ContextDAO {
 			$dao = DAORegistry::getDAO($daoName);
 			$dao->deleteAllPubIds($journalId, $pubIdType);
 		}
+		import('lib.pkp.classes.submission.SubmissionFileDAODelegate');
+		$submissionFileDaoDelegate = new SubmissionFileDAODelegate();
+		$submissionFileDaoDelegate->deleteAllPubIds($journalId, $pubIdType);
+
 	}
 
 	/**
@@ -182,18 +161,26 @@ class JournalDAO extends ContextDAO {
 	 * @param $assocType int The object type of an object to be excluded from
 	 *  the search. Identified by one of the ASSOC_TYPE_* constants.
 	 * @param $assocId int The id of an object to be excluded from the search.
+	 * @param $forSameType boolean Whether only the same objects should be considered.
 	 * @return boolean
 	 */
 	function anyPubIdExists($journalId, $pubIdType, $pubId,
-			$assocType = ASSOC_TYPE_ANY, $assocId = 0) {
+			$assocType = ASSOC_TYPE_ANY, $assocId = 0, $forSameType = false) {
+
 		$pubObjectDaos = array(
-			ASSOC_TYPE_ISSUE => 'IssueDAO',
-			ASSOC_TYPE_ARTICLE => 'ArticleDAO',
-			ASSOC_TYPE_GALLEY => 'ArticleGalleyDAO',
-			ASSOC_TYPE_ISSUE_GALLEY => 'IssueGalleyDAO',
+			ASSOC_TYPE_ISSUE => DAORegistry::getDAO('IssueDAO'),
+			ASSOC_TYPE_ARTICLE => Application::getSubmissionDAO(),
+			ASSOC_TYPE_GALLEY => Application::getRepresentationDAO(),
+			ASSOC_TYPE_ISSUE_GALLEY => DAORegistry::getDAO('IssueGalleyDAO'),
+			ASSOC_TYPE_SUBMISSION_FILE => DAORegistry::getDAO('SubmissionFileDAO')
 		);
-		foreach($pubObjectDaos as $daoAssocType => $daoName) {
-			$dao = DAORegistry::getDAO($daoName);
+		if ($forSameType) {
+			$dao = $pubObjectDaos[$assocType];
+			$excludedId = $assocId;
+			if ($dao->pubIdExists($pubIdType, $pubId, $excludedId, $journalId)) return true;
+			return false;
+		}
+		foreach($pubObjectDaos as $daoAssocType => $dao) {
 			if ($assocType == $daoAssocType) {
 				$excludedId = $assocId;
 			} else {

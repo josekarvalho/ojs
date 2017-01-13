@@ -3,7 +3,8 @@
 /**
  * @file plugins/reports/articles/ArticleReportPlugin.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class ArticleReportPlugin
@@ -12,7 +13,7 @@
  * @brief Article report plugin
  */
 
-import('classes.plugins.ReportPlugin');
+import('lib.pkp.classes.plugins.ReportPlugin');
 
 class ArticleReportPlugin extends ReportPlugin {
 	/**
@@ -49,8 +50,10 @@ class ArticleReportPlugin extends ReportPlugin {
 		return __('plugins.reports.articles.description');
 	}
 
-	function display(&$args) {
-		$request = $this->getRequest();
+	/**
+	 * @copydoc ReportPlugin::display() 
+	 */
+	function display($args, $request) {
 		$journal = $request->getJournal();
 
 		header('content-type: text/comma-separated-values');
@@ -71,11 +74,12 @@ class ArticleReportPlugin extends ReportPlugin {
 		AppLocale::requireComponents(LOCALE_COMPONENT_APP_EDITOR, LOCALE_COMPONENT_PKP_SUBMISSION);
 
 		import('classes.article.Article');
+		import('classes.workflow.EditorDecisionActionsManager');
 		$decisionMessages = array(
-			SUBMISSION_EDITOR_DECISION_ACCEPT => __('editor.article.decision.accept'),
-			SUBMISSION_EDITOR_DECISION_PENDING_REVISIONS => __('editor.article.decision.pendingRevisions'),
-			SUBMISSION_EDITOR_DECISION_RESUBMIT => __('editor.article.decision.resubmit'),
-			SUBMISSION_EDITOR_DECISION_DECLINE => __('editor.article.decision.decline'),
+			SUBMISSION_EDITOR_DECISION_ACCEPT => __('editor.submission.decision.accept'),
+			SUBMISSION_EDITOR_DECISION_PENDING_REVISIONS => __('editor.submission.decision.pendingRevisions'),
+			SUBMISSION_EDITOR_DECISION_RESUBMIT => __('editor.submission.decision.resubmit'),
+			SUBMISSION_EDITOR_DECISION_DECLINE => __('editor.submission.decision.decline'),
 			null => __('plugins.reports.articles.nodecision')
 		);
 
@@ -172,7 +176,7 @@ class ArticleReportPlugin extends ReportPlugin {
 			$returner['mname' . $seq] = isset($author['mname']) ? $author['mname'] : '';
 			$returner['lname' . $seq] = isset($author['lname']) ? $author['lname'] : '';
 			$returner['email' . $seq] = isset($author['email']) ? $author['email'] : '';
-			$returner['affiliation'] = isset($author['affiliation']) ? $author['affiliation'] : '';
+			$returner['affiliation' . $seq] = isset($author['affiliation']) ? $author['affiliation'] : '';
 			$returner['country' . $seq] = isset($author['country']) ? $author['country'] : '';
 			$returner['url' . $seq] = isset($author['url']) ? $author['url'] : '';
 			$returner['biography' . $seq] = isset($author['biography']) ? $author['biography'] : '';

@@ -3,7 +3,8 @@
 /**
  * @file pages/manager/SubscriptionHandler.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class SubscriptionHandler
@@ -18,8 +19,8 @@ class SubscriptionHandler extends ManagerHandler {
 	/**
 	 * Constructor
 	 */
-	function SubscriptionHandler() {
-		parent::ManagerHandler();
+	function __construct() {
+		parent::__construct();
 	}
 
 	/**
@@ -108,7 +109,7 @@ class SubscriptionHandler extends ManagerHandler {
 		}
 
 		$this->validate();
-		$this->setupTemplate($request, true, $institutional);
+		$this->setupTemplate($request);
 
 		import('classes.subscription.SubscriptionAction');
 		$editSuccess = SubscriptionAction::editSubscription($args, $request, $institutional);
@@ -138,7 +139,7 @@ class SubscriptionHandler extends ManagerHandler {
 		}
 
 		$this->validate();
-		$this->setupTemplate($request, true, $institutional);
+		$this->setupTemplate($request);
 
 		import('classes.subscription.SubscriptionAction');
 		SubscriptionAction::selectSubscriber($args, $request, $institutional);
@@ -157,7 +158,7 @@ class SubscriptionHandler extends ManagerHandler {
 		}
 
 		$this->validate();
-		$this->setupTemplate($request, true, $institutional);
+		$this->setupTemplate($request);
 
 		import('classes.subscription.SubscriptionAction');
 		$updateSuccess = SubscriptionAction::updateSubscription($args, $request, $institutional);
@@ -175,10 +176,6 @@ class SubscriptionHandler extends ManagerHandler {
 	function subscriptionTypes($args, $request) {
 		$this->validate();
 		$this->setupTemplate($request);
-
-		$templateMgr = TemplateManager::getManager($request);
-		$templateMgr->addJavaScript('lib/pkp/js/lib/jquery/plugins/jquery.tablednd.js');
-		$templateMgr->addJavaScript('lib/pkp/js/functions/tablednd.js');
 
 		import('classes.subscription.SubscriptionAction');
 		SubscriptionAction::subscriptionTypes($request);

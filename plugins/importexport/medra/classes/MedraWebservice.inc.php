@@ -3,7 +3,8 @@
 /**
  * @file plugins/importexport/medra/classes/MedraWebservice.inc.php
  *
- * Copyright (c) 2003-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2003-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class MedraWebservice
@@ -37,7 +38,7 @@ class MedraWebservice {
 	 * @param $login string
 	 * @param $password string
 	 */
-	function MedraWebservice($endpoint, $login, $password) {
+	function __construct($endpoint, $login, $password) {
 		$this->_endpoint = $endpoint;
 		$this->_auth = "$login:$password";
 	}
@@ -113,7 +114,6 @@ class MedraWebservice {
 		curl_setopt($curlCh, CURLOPT_USERPWD, $this->_auth);
 
 		// Set up SSL.
-		curl_setopt($curlCh, CURLOPT_SSLVERSION, 3);
 		curl_setopt($curlCh, CURLOPT_SSL_VERIFYPEER, false);
 
 		// Make SOAP request.
@@ -145,14 +145,14 @@ class MedraWebservice {
 		// than instantiating a DOM.
 		if (is_string($response)) {
 			$matches = array();
-			String::regexp_match_get('#<faultstring>([^<]*)</faultstring>#', $response, $matches);
+			PKPString::regexp_match_get('#<faultstring>([^<]*)</faultstring>#', $response, $matches);
 			if (empty($matches)) {
 				if ($attachment) {
-					assert(String::regexp_match('#<returnCode>success</returnCode>#', $response));
+					assert(PKPString::regexp_match('#<returnCode>success</returnCode>#', $response));
 				} else {
 					$parts = explode("\r\n\r\n", $response);
 					$result = array_pop($parts);
-					$result = String::regexp_replace('/>[^>]*$/', '>', $result);
+					$result = PKPString::regexp_replace('/>[^>]*$/', '>', $result);
 				}
 			} else {
 				$result = 'mEDRA: ' . $status . ' - ' . $matches[1];

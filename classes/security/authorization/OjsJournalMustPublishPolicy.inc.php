@@ -2,13 +2,14 @@
 /**
  * @file classes/security/authorization/OjsJournalMustPublishPolicy.inc.php
  *
- * Copyright (c) 2000-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2000-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
- * @class OjsAuthorDashboardAccessPolicy
+ * @class OjsJournalMustPublishPolicy
  * @ingroup security_authorization
  *
- * @brief Class to control access to OMP author dashboard.
+ * @brief Access policy to limit access to journals that do not publish online.
  */
 
 import('lib.pkp.classes.security.authorization.PolicySet');
@@ -24,8 +25,8 @@ class OjsJournalMustPublishPolicy extends AuthorizationPolicy {
 	 * @param $args array request arguments
 	 * @param $roleAssignments array
 	 */
-	function OjsJournalMustPublishPolicy($request) {
-		parent::AuthorizationPolicy('user.authorization.journalDoesNotPublish');
+	function __construct($request) {
+		parent::__construct('user.authorization.journalDoesNotPublish');
 		$this->_context = $request->getContext();
 	}
 
@@ -36,12 +37,11 @@ class OjsJournalMustPublishPolicy extends AuthorizationPolicy {
 		if (!$this->_context) return AUTHORIZATION_DENY;
 
 		// Certain roles are allowed to see unpublished content.
-		$userRoles = $this->getAuthorizedContextObject(ASSOC_TYPE_USER_ROLES);
+		$userRoles = (array) $this->getAuthorizedContextObject(ASSOC_TYPE_USER_ROLES);
 		if (count(array_intersect(
 			$userRoles,
 			array(
 				ROLE_ID_MANAGER,
-				ROLE_ID_EDITOR,
 				ROLE_ID_SITE_ADMIN,
 				ROLE_ID_ASSISTANT,
 				ROLE_ID_SECTION_EDITOR

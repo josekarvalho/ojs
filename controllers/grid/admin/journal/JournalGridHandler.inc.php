@@ -3,7 +3,8 @@
 /**
  * @file controllers/grid/admin/journal/JournalGridHandler.inc.php
  *
- * Copyright (c) 2000-2013 John Willinsky
+ * Copyright (c) 2014-2016 Simon Fraser University Library
+ * Copyright (c) 2000-2016 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class JournalGridHandler
@@ -19,8 +20,8 @@ class JournalGridHandler extends ContextGridHandler {
 	/**
 	 * Constructor
 	 */
-	function JournalGridHandler() {
-		parent::ContextGridHandler();
+	function __construct() {
+		parent::__construct();
 	}
 
 
@@ -31,7 +32,7 @@ class JournalGridHandler extends ContextGridHandler {
 	 * Edit an existing journal.
 	 * @param $args array
 	 * @param $request PKPRequest
-	 * @return string Serialized JSON object
+	 * @return JSONMessage JSON object
 	 */
 	function editContext($args, $request) {
 		// Get the journal ID. (Not the same as the context!)
@@ -40,16 +41,14 @@ class JournalGridHandler extends ContextGridHandler {
 		// Form handling.
 		$settingsForm = new JournalSiteSettingsForm(!isset($journalId) || empty($journalId) ? null : $journalId);
 		$settingsForm->initData();
-		$json = new JSONMessage(true, $settingsForm->fetch($args, $request));
-
-		return $json->getString();
+		return new JSONMessage(true, $settingsForm->fetch($args, $request));
 	}
 
 	/**
 	 * Update an existing journal.
 	 * @param $args array
 	 * @param $request PKPRequest
-	 * @return string Serialized JSON object
+	 * @return JSONMessage JSON object
 	 */
 	function updateContext($args, $request) {
 		// Identify the context Id.
@@ -60,8 +59,7 @@ class JournalGridHandler extends ContextGridHandler {
 		$settingsForm->readInputData();
 
 		if (!$settingsForm->validate()) {
-			$json = new JSONMessage(false);
-			return $json->getString();
+			return new JSONMessage(false);
 		}
 
 		PluginRegistry::loadCategory('blocks');
@@ -106,7 +104,7 @@ class JournalGridHandler extends ContextGridHandler {
 	 * Delete a journal.
 	 * @param $args array
 	 * @param $request PKPRequest
-	 * @return string Serialized JSON object
+	 * @return JSONMessage JSON object
 	 */
 	function deleteContext($args, $request) {
 		// Identify the journal Id.
@@ -114,7 +112,7 @@ class JournalGridHandler extends ContextGridHandler {
 		$journalDao = DAORegistry::getDAO('JournalDAO');
 		$journal = $journalDao->getById($journalId);
 
-		if ($journal) {
+		if ($journal && $request->checkCSRF()) {
 			$journalDao->deleteById($journalId);
 
 			// Delete journal file tree
@@ -131,8 +129,7 @@ class JournalGridHandler extends ContextGridHandler {
 			return DAO::getDataChangedEvent($journalId);
 		}
 
-		$json = new JSONMessage(false);
-		return $json->getString();
+		return new JSONMessage(false);
 	}
 }
 
