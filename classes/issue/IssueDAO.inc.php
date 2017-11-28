@@ -3,8 +3,8 @@
 /**
  * @file classes/issue/IssueDAO.inc.php
  *
- * Copyright (c) 2014-2016 Simon Fraser University Library
- * Copyright (c) 2003-2016 John Willinsky
+ * Copyright (c) 2014-2017 Simon Fraser University
+ * Copyright (c) 2003-2017 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class IssueDAO
@@ -368,9 +368,7 @@ class IssueDAO extends DAO implements PKPPubIdPluginDAO {
 
 		$this->updateLocaleFields($issue);
 
-		if ($this->customIssueOrderingExists($issue->getJournalId())) {
-			$this->resequenceCustomIssueOrders($issue->getJournalId());
-		}
+		$this->resequenceCustomIssueOrders($issue->getJournalId());
 
 		return $issue->getId();
 	}
@@ -446,9 +444,7 @@ class IssueDAO extends DAO implements PKPPubIdPluginDAO {
 
 		$this->updateLocaleFields($issue);
 
-		if ($this->customIssueOrderingExists($issue->getJournalId())) {
-			$this->resequenceCustomIssueOrders($issue->getJournalId());
-		}
+		$this->resequenceCustomIssueOrders($issue->getJournalId());
 
 		$this->flushCache();
 	}
@@ -530,21 +526,22 @@ class IssueDAO extends DAO implements PKPPubIdPluginDAO {
 	 * @param journalId int optional
 	 * @return Issue object
 	 */
-	function getIssueByArticleId($articleId, $journalId = null) {
+	function getByArticleId($articleId, $journalId = null) {
 		$params = array((int) $articleId);
-		$sql = 'SELECT	i.*
+		if ($journalId) $params[] = (int) $journalId;
+
+		$result = $this->retrieve(
+			'SELECT	i.*
 			FROM	issues i,
 				published_submissions pa,
 				submissions a
 			WHERE	i.issue_id = pa.issue_id AND
 				pa.submission_id = ? AND
-				pa.submission_id = a.submission_id';
-		if ($journalId !== null) {
-			$sql .= ' AND i.journal_id = ? AND a.context_id = i.journal_id';
-			$params[] = (int) $journalId;
-		}
-
-		$result = $this->retrieve($sql, $params);
+				pa.submission_id = a.submission_id AND
+				a.context_id = i.journal_id' .
+				($journalId?' AND i.journal_id = ?':''),
+			$params
+		);
 
 		$issue = null;
 		if ($result->RecordCount() != 0) {
@@ -671,6 +668,10 @@ class IssueDAO extends DAO implements PKPPubIdPluginDAO {
 	 * @param $journalId int
 	 */
 	function resequenceCustomIssueOrders($journalId) {
+		// If no custom issue ordering already exists, there is nothing to do
+		if (!$this->customIssueOrderingExists($journalId)) {
+			return;
+		}
 		$result = $this->retrieve(
 			'SELECT i.issue_id FROM issues i LEFT JOIN custom_issue_orders o ON (o.issue_id = i.issue_id) WHERE i.journal_id = ? ORDER BY o.seq',
 			(int) $journalId
@@ -776,7 +777,6 @@ class IssueDAO extends DAO implements PKPPubIdPluginDAO {
 			$this->insertCustomIssueOrder($journalId, $issueId, $newPos);
 		}
 		$result->Close();
-		$this->resequenceCustomIssueOrders($journalId);
 	}
 
 	/**

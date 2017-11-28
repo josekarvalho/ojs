@@ -1,8 +1,8 @@
 {**
  * templates/frontend/pages/issueArchive.tpl
  *
- * Copyright (c) 2014-2016 Simon Fraser University Library
- * Copyright (c) 2003-2016 John Willinsky
+ * Copyright (c) 2014-2017 Simon Fraser University
+ * Copyright (c) 2003-2017 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @brief Display a list of recent issues.
@@ -22,8 +22,8 @@
 	{include file="frontend/components/breadcrumbs.tpl" currentTitle=$pageTitle}
 
 	{* No issues have been published *}
-	{if !$issues}
-		{translate key="current.noCurrentIssueDesc"}
+	{if $issues->wasEmpty()}
+		<p>{translate key="current.noCurrentIssueDesc"}</p>
 
 	{* List issues *}
 	{else}

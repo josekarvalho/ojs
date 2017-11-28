@@ -3,8 +3,8 @@
 /**
  * @file plugins/generic/lucene/LucenePlugin.inc.php
  *
- * Copyright (c) 2014-2016 Simon Fraser University Library
- * Copyright (c) 2003-2016 John Willinsky
+ * Copyright (c) 2014-2017 Simon Fraser University
+ * Copyright (c) 2003-2017 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class LucenePlugin
@@ -41,14 +41,6 @@ class LucenePlugin extends GenericPlugin {
 
 	/** @var array */
 	var $_facets;
-
-
-	/**
-	 * Constructor
-	 */
-	function __construct() {
-		parent::__construct();
-	}
 
 
 	//
@@ -723,7 +715,9 @@ class LucenePlugin extends GenericPlugin {
 	}
 
 	/**
-	 * @see Form::execute()
+	 * Callback for execution upon section form save
+	 * @param $hookName string
+	 * @param $params array
 	 */
 	function callbackSectionFormExecute($hookName, $params) {
 		// Convert the ranking boost option back into a ranking boost factor.

@@ -4,8 +4,8 @@
 <!--
   * locale/es_ES/editor.xml
   *
-  * Copyright (c) 2013-2016 Simon Fraser University Library
-  * Copyright (c) 2003-2016 John Willinsky
+  * Copyright (c) 2013-2017 Simon Fraser University
+  * Copyright (c) 2003-2017 John Willinsky
   * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
   * https://pkp.sfu.ca/wiki/index.php?title=OJS:_Spanish_(es_ES)
   * Localization strings.
@@ -29,7 +29,6 @@
 	<message key="editor.submissionReview.confirmDecision">¿Está seguro/a de que desea registrar esta decisión?</message>
 	<message key="editor.submissionReview.emailWillArchive">Este envío se archivará después de que se envíe el correo electrónico de notificación al autor/a, o después de pulsar el botón No enviar correo electrónico.</message>
 	<message key="editor.submissionReview.cannotSendToCopyediting">Antes de mandar un envío a corrección de originales, utilice el enlace Notificar al autor/a para comunicarle la decisión y seleccionar la versión que se enviará.</message>
-	<message key="editor.submissionReview.sendToCopyediting">Enviar a Corrección de originales</message>
 	<message key="editor.notifyUsers">Informar a los usuarios/as</message>
 	<message key="editor.notifyUsers.allUsers">Todos los usuarios/as asociados con esta revista ({$count} usuarios/as)</message>
 	<message key="editor.notifyUsers.allReaders">Todos los lectores/as ({$count} usuarios/as)</message>
@@ -224,4 +223,13 @@
 	<message key="editor.submission.selectGalleyFiles">Seleccionar los archivos de galerada</message>
 	<message key="editor.submission.editorial.finalDraftDescription"><![CDATA[Los borradores finales de esta lista son transformados por el corrector/a de originales en versiones revisadas, cargadas a continuación en <span class="pkp_help_title">Corrección de originales</span>.]]></message>
 	<message key="editor.submission.proof.manageProofFilesDescription">Cualquier archivo que ya haya sido asignado a una fase del envío puede añadirse a la lista de corrección de originales marcando la casilla "Añadir" y haciendo clic en "Buscar": se listarán todos los archivos disponibles y podrán ser seleccionados para su inclusión.</message>
+	<message key="editor.publicIdentificationExistsForTheSameType">El identificador público '{$publicIdentifier}' ya existe para otro objeto del mismo tipo. Por favor, elija identificadores únicos para los objetos del mismo tipo en su revista.</message>
+	<message key="editor.issues.removeCoverImageFileNameMismatch">La imagen de portada que deseaba eliminar no coincidía con la de este número. Recargue la página y vuelva a intentarlo.</message>
+	<message key="editor.issues.removeCoverImageFileNotFound">La imagen de portada que deseaba eliminar no se ha podido encontrar, puede que ya haya sido eliminada. Inténtelo recargando la página.</message>
+	<message key="editor.issues.invalidCoverImageFormat">Formato de portada inválido. Los formatos aceptados son .gif, .jpg, or .png.</message>
+	<message key="editor.issues.confirmSetCurrentIssue">¿Está seguro de que desea establecer este número como el actual?</message>
+	<message key="grid.action.setCurrentIssue">Establecer número actual</message>
+	<message key="editor.article.schedulePublication">Programar para publicación</message>
+	<message key="editor.article.coverImage">Imagen de portada</message>
+	<message key="editor.article.removeCoverImageFileNotFound">La imagen de portada que deseaba eliminar no se ha podido encontrar, puede que ya haya sido eliminada. Inténtelo recargando la página.</message>
 </locale>

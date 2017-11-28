@@ -3,8 +3,8 @@
 /**
  * @file plugins/generic/announcementFeed/AnnouncementFeedPlugin.inc.php
  *
- * Copyright (c) 2014-2016 Simon Fraser University Library
- * Copyright (c) 2003-2016 John Willinsky
+ * Copyright (c) 2014-2017 Simon Fraser University
+ * Copyright (c) 2003-2017 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class AnnouncementFeedPlugin
@@ -154,8 +154,8 @@ class AnnouncementFeedPlugin extends GenericPlugin {
 				$templateMgr = TemplateManager::getManager($request);
 				$templateMgr->register_function('plugin_url', array($this, 'smartyPluginUrl'));
 
-				$this->import('SettingsForm');
-				$form = new SettingsForm($this, $context->getId());
+				$this->import('AnnouncementFeedSettingsForm');
+				$form = new AnnouncementFeedSettingsForm($this, $context->getId());
 
 				if ($request->getUserVar('save')) {
 					$form->readInputData();

@@ -3,8 +3,8 @@
 /**
  * @file plugins/importexport/datacite/DataciteExportPlugin.inc.php
  *
- * Copyright (c) 2014-2016 Simon Fraser University Library
- * Copyright (c) 2003-2016 John Willinsky
+ * Copyright (c) 2014-2017 Simon Fraser University
+ * Copyright (c) 2003-2017 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class DataciteExportPlugin
@@ -28,12 +28,6 @@ define('DATACITE_EXPORT_FILE_TAR', 0x02);
 
 
 class DataciteExportPlugin extends DOIPubIdExportPlugin {
-	/**
-	 * Constructor
-	 */
-	function __construct() {
-		parent::__construct();
-	}
 
 	/**
 	 * @see Plugin::getName()
@@ -101,7 +95,7 @@ class DataciteExportPlugin extends DOIPubIdExportPlugin {
 	/**
 	 * @copydoc PubObjectsExportPlugin::executeExportAction()
 	 */
-	function executeExportAction($request, $objects, $filter, $tab, $objectsFileNamePart) {
+	function executeExportAction($request, $objects, $filter, $tab, $objectsFileNamePart, $noValidation = null) {
 		$context = $request->getContext();
 		$path = array('plugin', $this->getName());
 
@@ -115,7 +109,7 @@ class DataciteExportPlugin extends DOIPubIdExportPlugin {
 				$exportedFiles = array();
 				foreach ($objects as $object) {
 					// Get the XML
-					$exportXml = $this->exportXML($object, $filter, $context);
+					$exportXml = $this->exportXML($object, $filter, $context, $noValidation);
 					// Write the XML to a file.
 					// export file name example: datacite-20160723-160036-articles-1-1.xml
 					$objectFileNamePart = $objectsFileNamePart . '-' . $object->getId();
@@ -158,7 +152,7 @@ class DataciteExportPlugin extends DOIPubIdExportPlugin {
 			$resultErrors = array();
 			foreach ($objects as $object) {
 				// Get the XML
-				$exportXml = $this->exportXML($object, $filter, $context);
+				$exportXml = $this->exportXML($object, $filter, $context, $noValidation);
 				// Write the XML to a file.
 				// export file name example: datacite-20160723-160036-articles-1-1.xml
 				$objectFileNamePart = $objectsFileNamePart . '-' . $object->getId();
@@ -180,7 +174,7 @@ class DataciteExportPlugin extends DOIPubIdExportPlugin {
 					NOTIFICATION_TYPE_SUCCESS
 				);
 			} else {
-				foreach($resultErrors as $error) {
+				foreach($resultErrors as $errors) {
 					foreach ($errors as $error) {
 						assert(is_array($error) && count($error) >= 1);
 						$this->_sendNotification(
@@ -200,7 +194,7 @@ class DataciteExportPlugin extends DOIPubIdExportPlugin {
 	}
 
 	/**
-	 * @copydoc DOIPubIdExportPlugin::depositXML()
+	 * @copydoc PubObjectsExportPlugin::depositXML()
 	 */
 	function depositXML($object, $context, $filename) {
 		$request = $this->getRequest();
@@ -413,7 +407,7 @@ class DataciteExportPlugin extends DOIPubIdExportPlugin {
 				$article = $cache->get('articles', $articleId);
 			} else {
 				$articleDao = DAORegistry::getDAO('PublishedArticleDAO'); /* @var $articleDao PublishedArticleDAO */
-				$article = $articleDao->getPublishedArticleByArticleId($articleId, $context->getId(), true);
+				$article = $articleDao->getByArticleId($articleId, $context->getId(), true);
 			}
 			assert(is_a($article, 'PublishedArticle'));
 		}

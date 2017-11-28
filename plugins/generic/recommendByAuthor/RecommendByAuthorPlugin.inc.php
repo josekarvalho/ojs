@@ -3,8 +3,8 @@
 /**
  * @file plugins/generic/recommendByAuthor/RecommendByAuthorPlugin.inc.php
  *
- * Copyright (c) 2014-2016 Simon Fraser University Library
- * Copyright (c) 2003-2016 John Willinsky
+ * Copyright (c) 2014-2017 Simon Fraser University
+ * Copyright (c) 2003-2017 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class RecommendByAuthorPlugin
@@ -19,14 +19,6 @@ import('lib.pkp.classes.plugins.GenericPlugin');
 define('RECOMMEND_BY_AUTHOR_PLUGIN_COUNT', 10);
 
 class RecommendByAuthorPlugin extends GenericPlugin {
-
-	/**
-	 * Constructor
-	 */
-	function __construct() {
-		parent::__construct();
-	}
-
 
 	//
 	// Implement template methods from Plugin.
@@ -111,7 +103,7 @@ class RecommendByAuthorPlugin extends GenericPlugin {
 		$orderBy = array(STATISTICS_METRIC => STATISTICS_ORDER_DESC);
 		$statsReport = $application->getMetrics($metricType, $column, $filter, $orderBy);
 		$orderedResults = array();
-		foreach ($statsReport as $reportRow) {
+		foreach ((array) $statsReport as $reportRow) {
 			$orderedResults[] = $reportRow['submission_id'];
 		}
 		// Make sure we even get results that have no statistics (yet) and that

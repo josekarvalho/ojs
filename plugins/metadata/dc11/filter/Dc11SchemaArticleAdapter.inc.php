@@ -3,8 +3,8 @@
 /**
  * @file plugins/metadata/dc11/filter/Dc11SchemaArticleAdapter.inc.php
  *
- * Copyright (c) 2014-2016 Simon Fraser University Library
- * Copyright (c) 2000-2016 John Willinsky
+ * Copyright (c) 2014-2017 Simon Fraser University
+ * Copyright (c) 2000-2017 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class Dc11SchemaArticleAdapter
@@ -201,7 +201,7 @@ class Dc11SchemaArticleAdapter extends MetadataDataObjectAdapter {
 		// Public identifiers
 		$pubIdPlugins = (array) PluginRegistry::loadCategory('pubIds', true, $journal->getId());
 		foreach ($pubIdPlugins as $pubIdPlugin) {
-			if ($pubIssueId = $issue->getStoredPubId($pubIdPlugin->getPubIdType())) {
+			if ($issue && $pubIssueId = $issue->getStoredPubId($pubIdPlugin->getPubIdType())) {
 				$dc11Description->addStatement('dc:source', $pubIssueId, METADATA_DESCRIPTION_UNKNOWN_LOCALE);
 				unset($pubIssueId);
 			}

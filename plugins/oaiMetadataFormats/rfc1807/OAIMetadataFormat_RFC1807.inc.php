@@ -3,8 +3,8 @@
 /**
  * @file plugins/oaiMetadataFormats/rfc1807/OAIMetadataFormat_RFC1807.inc.php
  *
- * Copyright (c) 2014-2016 Simon Fraser University Library
- * Copyright (c) 2003-2016 John Willinsky
+ * Copyright (c) 2014-2017 Simon Fraser University
+ * Copyright (c) 2003-2017 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class OAIMetadataFormat_RFC1807
@@ -18,7 +18,7 @@ class OAIMetadataFormat_RFC1807 extends OAIMetadataFormat {
 	/**
 	 * @see OAIMetadataFormat#toXml
 	 */
-	function toXml(&$record, $format = null) {
+	function toXml($record, $format = null) {
 		$article =& $record->getData('article');
 		$journal =& $record->getData('journal');
 		$section =& $record->getData('section');
@@ -51,8 +51,8 @@ class OAIMetadataFormat_RFC1807 extends OAIMetadataFormat {
 
 		// Subject
 		$subjects = array_merge_recursive(
-			$this->stripAssocArray((array) $article->getDiscipline(null)),
-			$this->stripAssocArray((array) $article->getSubject(null))
+			stripAssocArray((array) $article->getDiscipline(null)),
+			stripAssocArray((array) $article->getSubject(null))
 		);
 		$subject = isset($subjects[$journal->getPrimaryLocale()])?$subjects[$journal->getPrimaryLocale()]:'';
 

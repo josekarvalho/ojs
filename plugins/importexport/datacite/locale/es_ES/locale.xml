@@ -1,17 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE locale SYSTEM "../../../../../lib/pkp/dtd/locale.dtd">
+
 <!--
   * plugins/importexport/datacite/locale/es_ES/locale.xml
   *
-  * Copyright (c) 2013-2016 Simon Fraser University Library
-  * Copyright (c) 2003-2016 John Willinsky
+  * Copyright (c) 2013-2017 Simon Fraser University
+  * Copyright (c) 2003-2017 John Willinsky
   * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
   * Localization information: https://pkp.sfu.ca/wiki/index.php?title=OJS:_Spanish_(es_ES)
   * Localization strings.
   -->
  
 <locale name="es_ES" full_name="Español (España)">
-    <message key="plugins.importexport.datacite.displayName">Módulo de exportación/registro de DataCite</message>
+	<message key="plugins.importexport.datacite.displayName">Módulo de exportación/registro de DataCite</message>
 	<message key="plugins.importexport.datacite.description">Exportar o registrar metadatos de número, de artículo, de galerada y de archivos complementarios en formato DataCite.</message>
 
 	<message key="plugins.importexport.datacite.intro"><![CDATA[

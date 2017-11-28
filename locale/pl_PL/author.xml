@@ -2,12 +2,13 @@
 <!DOCTYPE locale SYSTEM "../../lib/pkp/dtd/locale.dtd">
 
 <!--
-  * Copyright (c) 2013-2016 Simon Fraser University Library
-  * Copyright (c) 2003-2016 John Willinsky
+  * locale/pl_PL/author.xml
+  *
+  * Copyright (c) 2013-2017 Simon Fraser University
+  * Copyright (c) 2003-2017 John Willinsky
   * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
-  *
-  * Plik językowy dla pl_PL
-  *
+  * Localization information: https://pkp.sfu.ca/wiki/index.php?title=OJS:_Polish_(pl_PL)
+  * Localization strings.
   -->
 
 <locale name="pl_PL" full_name="Język Polski">
@@ -29,54 +30,49 @@
 	<message key="author.submit.metadata">Wprowadź metadane</message>
 	<message key="author.submit.supplementaryFiles">Prześlij dodatkowe pliki</message>
 	<message key="author.submit.confirmation">Potwierdź</message>
-	<message key="submission.submit.cancelSubmission">Możesz uzupełnić swoje zgłoszenie w późniejszym terminie, przechodząc do "Zgłoszone teksty" w zakładce "Moje konto".</message>
 	<message key="author.submit.notAccepting">Czasopismo nie przyjmuje obecnie nowych zgłoszeń.</message>
 	<message key="author.submit.requestWaiver">Prośba o umorzenie płatności za publikację</message>
-	<message key="author.submit.qualityForWaiver">Proszę o umorzenie płatności za publikację testu</message>
-	<message key="author.submit.addReasonsForWaiver">Proszę uzasadnić dlaczego płatność za publikację tekstu powinna być umorzona.</message>
+	<message key="author.submit.addReasonsForWaiver">Proszę uzasadnić dlaczego płatność powinna być umorzona.</message>
+	<message key="author.submit.mustEnterWaiverReason">Jeżeli aplikujesz o umorzenie płatności, musisz podać uzasadnienie.</message>
 	<message key="author.submissions.queuedReviewSubsequent">W recenzji, etap {$round}</message>
 	<message key="author.submissions.queuedReviewRevisions">W recenzji: Wymagana korekta</message>
 	<message key="author.submissions.queuedEditingCopyedit">W korekcie: Wysłano prośbę o korektę</message>
 	<message key="author.submissions.queuedEditingProofread">W edycji: Wysłano prośbę o sprawdzenie wersji finalnej</message>
 	<message key="author.submissions.uploadCopyeditedVersion">Prześlij wersję po korekcie</message>
-	<message key="author.submissions.proofreadingCorrections">Korekta finalna</message>
+	<message key="author.submissions.proofreadingCorrections">Korekta pliku do publikacji</message>
 	<message key="author.submissions.confirmDelete">Potwierdź usunięcie tekstu</message>
 	<message key="author.submissions.viewStatus">Wyświetl status tekstu</message>
 	<message key="author.submissions.noSubmissions">Brak przesłanych tekstów.</message>
-	<message key="author.submit.howToSubmit"><![CDATA[Napotkałeś na trudności? Skontaktuj się z <a href="mailto:{$supportEmail}">{$supportName}</a> w celu uzyskania pomocy ({$supportPhone}).]]></message>
-	<message key="author.submit.howToSubmitNoPhone"><![CDATA[Napotkałeś trudności? <a href="mailto:{$supportEmail}">{$supportName}</a> służy pomocą.]]></message>
 	<message key="author.submit.journalSection">Dział czasopisma</message>
-	<message key="author.submit.journalSectionDescription"><![CDATA[Wybierz docelowy dział dla przesyłanego tekstu (informacje o działach znajdziesz na stronie <a href="{$aboutUrl}" target="_new">O czasopiśmie</a>).]]></message>
-	<message key="submission.submit.selectSection">Wybierz dział...</message>
-	<message key="author.submit.submissionChecklist">Sprawdzenie tekstu przed wysłaniem</message>
+	<message key="author.submit.journalSectionDescription">Wybierz docelowy dział dla przesyłanego tekstu.</message>
+	<message key="author.submit.submissionLocale">Język przesyłanego tekstu</message>
+	<message key="author.submit.submissionLocaleDescription">Czasopismo akceptuje teksty napisane w różnych językach. Wybierz w jakim języku został napisany tekst.</message>
 	<message key="author.submit.verifyChecklist">Aby kontynuować, upewnij się, że wszystkie elementy listy zostały zaznaczone.</message>
-	<message key="author.submit.copyrightNoticeAgree">Zapoznałem się z prawami autorskimi dotyczącymi przesyłanego tekstu (ewentualny komenatrz dla redaktora można wpisać poniżej).</message>
-	<message key="author.submit.copyrightNoticeAgreeRequired">Aby kontynuować, upewnij się, że zapoznałeś się z prawami autorskimi.</message>
-	<message key="submission.submit.coverNote">Komentarz dla redaktora</message>
+	<message key="author.submit.copyrightNoticeAgree">Zapoznałem(am) się z prawami autorskimi dotyczącymi przesyłanego tekstu (ewentualny komenatrz dla redaktora można wpisać poniżej).</message>
+	<message key="author.submit.copyrightNoticeAgreeRequired">Aby kontynuować, upewnij się, że zapoznałeś(aś) się z prawami autorskimi.</message>
 	<message key="author.submit.comments">Wpisz komentarz dla redaktora (opcjonalne)</message>
 	<message key="author.submit.form.sectionRequired">Aby kontynuować, upewnij się, że wybrałeś poprawny dział czasopisma dla przesyłanego tekstu.</message>
 	<message key="author.submit.form.localeRequired">Aby kontynuować, wybierz język w jakim został napisany tekst.</message>
-	<message key="submission.submit.privacyStatement">Polityka prywatności</message>
 	<message key="author.submit.reorderInstructions">Zmień kolejność wyświetlania autorów.</message>
 	<message key="author.submit.reorder">Zmień kolejnośc wyświetlania autorów</message>
 	<message key="author.submit.selectPrincipalContact">Główna osoba do kontaktu.</message>
 	<message key="author.submit.addAuthor">Dodaj autora</message>
 	<message key="author.submit.deleteAuthor">Usuń autora</message>
-	<message key="author.submit.submissionIndexingDescription">Podaj słowa kluczowe dla zgłoszonego tekstu. Poszczególne słowa kluczowe oddziel za pomocą średnika (np. psychologia nauczania; kinezjologia; pedeutologia).</message>
+	<message key="author.submit.submissionIndexingDescription">Podaj słowa kluczowe dla zgłoszonego tekstu. Poszczególne słowa kluczowe oddziel za pomocą średnika (np. Historia mówiona; oral history; relacje historii mówionej; świadek historii; źródła wywołane; metoda biograficzna).</message>
 	<message key="author.submit.coverageInstructions">Określa zasięg geograficzny, chronologiczny i historyczny przedmiotu badań.</message>
 	<message key="author.submit.languageInstructions"><![CDATA[Angielski=en; Polski=pl. <a href="http://www.loc.gov/standards/iso639-2/php/code_list.php" target="_blank">Pozostałe kody</a>.]]></message>
 	<message key="author.submit.form.authorRequired">Przynajmniej jeden autor jest wymagany.</message>
 	<message key="author.submit.form.authorRequiredFields">Imię, nazwisko oraz adres e-mail każdego z autorów są wymagane.</message>
 	<message key="author.submit.form.titleRequired">Podaj tytuł przesyłanego tekstu.</message>
 	<message key="author.submit.form.abstractRequired">Podaj abstrakt przesyłanego tekstu.</message>
-	<message key="author.submit.form.wordCountAlert">Przekroczyłeś maksymalną liczbę słów dla abstraktu.</message>
+	<message key="author.submit.form.wordCountAlert">Przekroczyłeś(aś) maksymalną liczbę słów dla abstraktu.</message>
 	<message key="author.submit.submissionFile">Plik z tekstem</message>
 	<message key="author.submit.uploadSubmissionFile">Prześlij plik z tekstem</message>
 	<message key="author.submit.replaceSubmissionFile">Zamień plik z tekstem</message>
 	<message key="author.submit.noSubmissionFile">Plik z tekstem nie został jeszcze wysłany.</message>
 	<message key="author.submit.noSubmissionConfirm">Czy kontynuować bez przesłania pliku z tekstem?</message>
 	<message key="author.submit.supplementaryFilesInstructions">Jeżeli zajdzie taka konieczność, w tym miejscu możesz przesłać pliki pomocnicze. Dokumenty w dowolnym formacie mogą zawierać np. narzędzia badawcze, dane statystyczne, źródła które w innym wypadku były by niedostępne dla czytelników lub obrazy i tabele niemożliwe do umieszczenia w tekście.</message>
-	<message key="author.submit.supplementaryFiles.saveToUpload">Kliknij Zapisz aby przesłać plik.</message>
+	<message key="author.submit.supplementaryFiles.saveToUpload">Kliknij Zapisz, aby przesłać plik.</message>
 	<message key="author.submit.forgottenSubmitSuppFile">Czy kontynuować bez przesłania pliku pomocniczego?</message>
 	<message key="author.submit.noSupplementaryFiles">Pomocnicze pliki nie zostały dodane.</message>
 	<message key="author.submit.backToSupplementaryFiles">Wróć do plików pomocniczych</message>
@@ -112,8 +108,13 @@
 	<message key="author.submit.filesSummary">Podsumowanie</message>
 	<message key="author.submit.finishSubmission">Zakończ</message>
 	<message key="author.submit.submissionComplete">Przesyłanie ukończone. Dziękujemy za zainteresowanie opublikowaniem tekstu w czasopiśmie {$journalTitle}.</message>
-	<message key="author.article.uploadAuthorVersion">Prześlij wersję autora</message>
+	<message key="author.article.uploadAuthorVersion">Prześlij poprawioną wersję</message>
 	<message key="author.article.copyeditedFile">Plik po korekcie</message>
 	<message key="author.article.authorRevisedFile">Plik autora</message>
 	<message key="author.submit.authorSubmitLoginMessage">Posiadanie konta użytkownika jest wymagane, aby móc przesłać teksty do publikacji w czasopismie.</message>
+	<message key="author.submit.qualifyForWaiver">Proszę o umorzenie płatności za zgłoszenie tekstu.</message>
+	<message key="author.submit.nextSteps">Następne kroki</message>
+	<message key="submission.submit.cancelSubmission">Możesz dokończyć zgłoszenie później. Niekompletne zgłoszenie znajdziesz w swoim panelu roboczym.</message>
+	<message key="submission.submit.coverNote">Wiadomość dla redaktora</message>
+	<message key="submission.submit.privacyStatement">Polityka prywatności czasopisma</message>
 </locale>

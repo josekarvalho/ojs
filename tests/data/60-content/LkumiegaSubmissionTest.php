@@ -3,8 +3,8 @@
 /**
  * @file tests/data/60-content/LkumiegaSubmissionTest.php
  *
- * Copyright (c) 2014-2016 Simon Fraser University Library
- * Copyright (c) 2000-2016 John Willinsky
+ * Copyright (c) 2014-2017 Simon Fraser University
+ * Copyright (c) 2000-2017 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class LkumiegaSubmissionTest
@@ -49,7 +49,7 @@ class LkumiegaSubmissionTest extends ContentBaseTestCase {
 		$this->performReview('amccrae', null, $title, 'Revisions Required');
 		$this->performReview('agallego', null, $title, 'Resubmit for Review');
 		$this->findSubmissionAsEditor('dbarnes', null, $title);
-		$this->recordEditorialDecision('Resubmit for Review');
+		$this->recordEditorialDecision('Request Revisions');
 		$this->logOut();
 	}
 }

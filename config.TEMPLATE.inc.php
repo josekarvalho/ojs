@@ -7,8 +7,8 @@
 ;
 ; config.TEMPLATE.inc.php
 ;
-; Copyright (c) 2014-2016 Simon Fraser University Library
-; Copyright (c) 2003-2016 John Willinsky
+; Copyright (c) 2014-2017 Simon Fraser University
+; Copyright (c) 2003-2017 John Willinsky
 ; Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
 ;
 ; OJS Configuration settings.
@@ -255,6 +255,9 @@ encryption = sha1
 
 ; The unique salt to use for generating password reset hashes
 salt = "YouMustSetASecretKeyHere!!"
+
+; The unique secret used for encoding and decoding API keys
+api_key_secret = ""
 
 ; The number of seconds before a password reset hash expires (defaults to 7200 / 2 hours)
 reset_seconds = 7200

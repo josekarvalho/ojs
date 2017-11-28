@@ -3,8 +3,8 @@
 /**
  * @file plugins/pubIds/doi/classes/form/DOISettingsForm.inc.php
  *
- * Copyright (c) 2014-2016 Simon Fraser University Library
- * Copyright (c) 2003-2016 John Willinsky
+ * Copyright (c) 2014-2017 Simon Fraser University
+ * Copyright (c) 2003-2017 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class DOISettingsForm
@@ -82,6 +82,18 @@ class DOISettingsForm extends Form {
 			__('plugins.pubIds.doi.manager.settings.doiReassign'),
 			'delete'
 		));
+		$this->setData('assignJournalWidePubIdsLinkAction', new LinkAction(
+			'assignDOIs',
+			new RemoteActionConfirmationModal(
+				$request->getSession(),
+				__('plugins.pubIds.doi.manager.settings.doiAssignJournalWide.confirm'),
+				__('plugins.pubIds.doi.manager.settings.doiAssignJournalWide'),
+				$request->url(null, null, 'manage', null, array('verb' => 'assignPubIds', 'plugin' => $plugin->getName(), 'category' => 'pubIds')),
+				'modal_confirm'
+			),
+			__('plugins.pubIds.doi.manager.settings.doiAssignJournalWide'),
+			'advance'
+		));
 		$this->setData('pluginName', $plugin->getName());
 	}
 
@@ -108,7 +120,7 @@ class DOISettingsForm extends Form {
 	}
 
 	/**
-	 * @copydoc Form::execute()
+	 * Execute the form.
 	 */
 	function execute() {
 		$plugin = $this->_getPlugin();

@@ -4,8 +4,8 @@
 <!--
   * locale/en_US/locale.xml
   *
-  * Copyright (c) 2013-2016 Simon Fraser University Library
-  * Copyright (c) 2003-2016 John Willinsky
+  * Copyright (c) 2013-2017 Simon Fraser University
+  * Copyright (c) 2003-2017 John Willinsky
   * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
   * Localization information: https://pkp.sfu.ca/wiki/index.php?title=Translating_OxS
   * Localization strings.
@@ -36,7 +36,7 @@
 
 
 	<message key="reviewer.article.enterReviewForm">Click on icon to fill in the review form.</message>
-	<message key="reviewer.article.reviewFormResponse.form.responseRequired">Please fill in required fields.</message>
+	<message key="reviewer.submission.reviewFormResponse.form.responseRequired">Please fill in required fields.</message>
 
 	<!-- review forms end -->
 
@@ -211,7 +211,7 @@
 
 	<!-- Roles -->
 	<message key="user.role.manager">Journal Manager</message>
-	<message key="user.role.sectionEditor">Section Editor</message>
+	<message key="user.role.subEditor">Section Editor</message>
 	<message key="user.role.subscriptionManager">Subscription Manager</message>
 	<message key="user.role.managers">Journal Managers</message>
 	<message key="user.role.subEditors">Section Editors</message>
@@ -257,6 +257,7 @@
 	<message key="subscriptions.status.needsApproval">Needs Approval</message>
 	<message key="subscriptions.status.awaitingManualPayment">Awaiting Manual Payment</message>
 	<message key="subscriptions.status.awaitingOnlinePayment">Awaiting Online Payment</message>
+	<message key="subscriptions.status.noSubscription">You do not have an active subscription.</message>
 	<message key="subscriptions.status.other">Other, See Notes</message>
 	<message key="subscriptions.individualDescription">Individual subscriptions require login to access subscription content.</message>
 	<message key="subscriptions.institutionalDescription">Institutional subscriptions do not require login. The user's domain and/or IP address is used to provide access to subscription content.</message>
@@ -317,6 +318,7 @@
 	<message key="reader.openAccess">Open Access</message>
 	<message key="reader.subscriptionAccess">Requires Subscription</message>
 	<message key="reader.subscriptionOrFeeAccess">Requires Subscription or Fee</message>
+	<message key="reader.purchasePrice">({$currency} {$price})</message>
 
 	<!-- Reader Comments -->
 	<message key="comments.commentsOnArticle">Comments on this article</message>
@@ -336,20 +338,13 @@
 	<message key="search.results.orderDir.desc">Descending</message>
 	<message key="search.results.similarDocuments">similar documents</message>
 
-	<!-- Site Administration -->
-	<message key="admin.settings.oaiRegistrationDescription"><![CDATA[To have the contents of all journals hosted on this site indexed within a globally distributed system of research databases, <a href="http://pkp.sfu.ca/harvester/add.php" target="_blank">register</a> your site's URL with the Public Knowledge Project metadata <a href="http://pkp.sfu.ca/harvester/" target="_blank">harvester</a>. This tool collects the metadata from each indexed item in this journal, enabling accurate and collective searching among the research sites that adhere to the <a href="http://www.openarchives.org/OAI/openarchivesprotocol.htm#Introduction" target="_blank">Open Archives Initiative Protocol for Metadata Harvesting</a>.
-<br /><br />
-<a href="http://pkp.sfu.ca/harvester/add.php" target="_blank">Click here</a> and enter <span class="highlight">{$siteUrl}</span> under <strong>Site URL</strong>, and <span class="highlight">{$oaiUrl}</span> under <strong>Base URL for OAI Archive</strong>.
-<br /><br />
-Note that the OAI interface can be disabled for this site by editing the OJS system configuration. Future versions of OJS will allow the OAI interface to be enabled or disabled for individual journals within the site.]]></message>
-
 	<message key="admin.auth.defaultSourceDescription"><![CDATA[<p>Specifying a default authentication source other than OJS has the following effects:</p>
 <ul>
 	<li>If a user attempts to register a new account with this site with a username that exists on the authentication source (but not in the OJS database), the registration attempt is only allowed if the supplied password is valid for that user account.</li>
 </ul>]]></message>
 
 	<!-- System Information -->
-	<message key="admin.overwriteConfigFileInstructions"><![CDATA[<h4>NOTE!</div>
+	<message key="admin.overwriteConfigFileInstructions"><![CDATA[<h4>NOTE!</h4>
 <p>The system could not automatically overwrite the configuration file. To apply your configuration changes you must open <tt>config.inc.php</tt> in a suitable text editor and replace its contents with the contents of the text field below.</p>]]></message>
 
 
@@ -373,7 +368,6 @@ Note that the OAI interface can be disabled for this site by editing the OJS sys
 	<message key="plugins.categories.viewableFiles">Article Galley Plugins</message>
 	<message key="plugins.categories.viewableFiles.description">Article Galley Plugins add support for displaying different document types as article galleys.</message>
 	<message key="plugins.categories.auth.description">Authorization Plugins allow Open Journal Systems to delegate user authentication tasks to other systems, such as LDAP servers.</message>
-	<message key="plugins.categories.citationFormats.description">Citation format plugins provide users with various formats in which to access article citations.</message>
 	<message key="plugins.categories.generic.description">Generic plugins are used to extend Open Journal Systems in a variety of ways that are not supported by the other plugin categories.</message>
 
 	<message key="manager.setup.lockssDescription"><![CDATA[Open Journal Systems supports the <a href="http://www.lockss.org/" target="_blank">LOCKSS</a> (Lots of Copies Keep Stuff Safe) system to ensure a secure and permanent archive for the journal. LOCKSS is open source software developed at Stanford University Library that enables libraries to preserve selected web journals by regularly polling registered journal websites for newly published content and archiving it. Each archive is continually validated against other library caches, and if content is found to be corrupted or lost, the other caches or the journal is used to restore it.
@@ -394,14 +388,13 @@ Authors who publish with this journal agree to the following terms:
 	<li>Authors are permitted and encouraged to post their work online (e.g., in institutional repositories or on their website) prior to and during the submission process, as it can lead to productive exchanges, as well as earlier and greater citation of published work (See <a target="_new" href="http://opcit.eprints.org/oacitation-biblio.html">The Effect of Open Access</a>).</li>
 </ol>
 
-<h4>Proposed Policy for Journals That Offer Delayed Open Access</h4>
+<h4>2. Proposed Policy for Journals That Offer Delayed Open Access</h4>
 Authors who publish with this journal agree to the following terms:
 <ol type="a">
 	<li>Authors retain copyright and grant the journal right of first publication, with the work [SPECIFY PERIOD OF TIME] after publication simultaneously licensed under a <a target="_new" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution License</a> that allows others to share the work with an acknowledgement of the work's authorship and initial publication in this journal.</li>
 	 <li>Authors are able to enter into separate, additional contractual arrangements for the non-exclusive distribution of the journal's published version of the work (e.g., post it to an institutional repository or publish it in a book), with an acknowledgement of its initial publication in this journal.</li>
 	 <li>Authors are permitted and encouraged to post their work online (e.g., in institutional repositories or on their website) prior to and during the submission process, as it can lead to productive exchanges, as well as earlier and greater citation of published work (See <a target="_new" href="http://opcit.eprints.org/oacitation-biblio.html"> The Effect of Open Access</a>).</li>
 </ol>]]></message>
-	<message key="manager.setup.citations.enable">Enable the Citation Markup Assistant</message>
 
 	<!-- Setup Step 4 -->
 	<message key="manager.setup.basicEditorialStepsDescription"><![CDATA[Steps: Submission Queue &gt; Submission Review &gt; Submission Editing &gt; Table of Contents.<br /><br />
@@ -581,7 +574,6 @@ Active is how many reviews are currently being considered or underway.]]></messa
 	<message key="reviewer.article.selectRecommendation.byEditor">Set or adjust the reviewer recommendation.</message>
 	<message key="reviewer.article.mustSelectDecision">No recommendation was selected. You must choose a recommendation to submit.</message>
 	<message key="reviewer.article.confirmDecision">Once you have recorded a decision you will no longer be able to make changes to this review. Are you sure you wish to continue?</message>
-	<message key="reviewer.article.ensuringBlindReview">Ensuring a Blind Review</message>
 
 	<!-- Used in submission editing -->
 	<message key="copyeditor.article.fileToCopyedit">File To C/E</message>
@@ -706,8 +698,8 @@ Active is how many reviews are currently being considered or underway.]]></messa
 	<message key="user.subscriptions.purchaseNewSubscription">Purchase New Subscription</message>
 	<message key="user.subscriptions.purchaseIndividualSubscription">Purchase Individual Subscription</message>
 	<message key="user.subscriptions.purchaseInstitutionalSubscription">Purchase Institutional Subscription</message>
-	<message key="user.subscriptions.expires">Expires</message>
-	<message key="user.subscriptions.expired">Expired</message>
+	<message key="user.subscriptions.expires">Expires: {$date}</message>
+	<message key="user.subscriptions.expired">Expired: {$date}</message>
 	<message key="user.subscriptions.viewSubscriptionTypes">View Available Subscription Types</message>
 	<message key="user.subscriptions.form.typeId">Subscription Type</message>
 	<message key="user.subscriptions.form.membership">Membership</message>
@@ -835,41 +827,6 @@ Active is how many reviews are currently being considered or underway.]]></messa
 	<message key="donations.thankYou">Thank You</message>
 	<message key="donations.thankYouMessage">Thank you for making a contribution.  Your contribution is much appreciated.</message>
 
-	<!-- Gifts -->
-	<message key="gifts.buyer">From</message>
-	<message key="gifts.buyerDescription">Who is this gift from?</message>
-	<message key="gifts.recipient">To</message>
-	<message key="gifts.recipientDescription">Who is this gift to?</message>
-	<message key="gifts.thankYou">Thank You</message>
-	<message key="gifts.thankYouMessage">Your gift purchase has been completed. You will receive a copy of the gift email sent to the recipient once your payment has been processed.</message>
-	<message key="gifts.purchaseGiftIndividualSubscription">Gift Subscription</message>
-	<message key="gifts.subscriptionFormIntroduction">Please fill out the form below. The provided contact information, along with your gift note, will be used to email the recipient and inform them of their new gift subscription (you will also receive a copy of this email).</message>
-	<message key="gifts.details">Gift Details</message>
-	<message key="gifts.detailsDescription">Please select the gift below and include a personalized message that will be emailed to the recipient (you will receive a copy of this email).</message>
-	<message key="gifts.gift">Gift</message>
-	<message key="gifts.noteTitle">Title</message>
-	<message key="gifts.note">Gift Note</message>
-	<message key="gifts.noteTitleRequired">Please provide a title for your personalized message.</message>
-	<message key="gifts.noteRequired">Please provide a personalized message.</message>
-	<message key="gifts.localeRequired">Please select a language for your personalized message.</message>
-	<message key="gifts.myGifts">My Gifts</message>
-	<message key="gifts.manageMyGifts">Manage My Gifts</message>
-	<message key="gifts.redeemGift">Redeem Gift</message>
-	<message key="gifts.status.notRedeemed">Available</message>
-	<message key="gifts.status.redeemed">Redeemed</message>
-	<message key="gifts.status.redeemGift">Redeem Gift</message>
-	<message key="gifts.subscriptions">Subscriptions</message>
-	<message key="gifts.subscriptionsDescription">A gift subscription redeemed here will replace your existing subscription (if you have one). Subscriptions will begin on the redemption date and will be valid for the duration of the subscription type.</message>
-	<message key="gifts.purchaseGiftSubscription">Give a gift subscription</message>
-	<message key="gifts.giftSubscriptionsAvailable">Gift subscriptions are also available. Gift subscriptions can be redeemed at any time by the recipient and are a great way to support this journal.</message>
-	<message key="gifts.noSubscriptions">No gift subscriptions</message>
-	<message key="gifts.giftRedeemed">The gift was successfully redeemed.</message>
-	<message key="gifts.noGiftToRedeem">This gift is not available to be redeemed.</message>
-	<message key="gifts.giftAlreadyRedeemed">This gift has already been redeemed.</message>
-	<message key="gifts.giftNotValid">This gift is not valid and could not be redeemed.</message>
-	<message key="gifts.subscriptionTypeNotValid">The subscription type for this gift is not valid. Please contact the subscription manager.</message>
-	<message key="gifts.subscriptionNonExpiring">The gift was not redeemed since you already have a non-expiring subscription with this journal.</message>
-
 	<!-- Payments -->
 	<message key="payment.loginRequired">You must be logged in to make a payment.</message>
 	<message key="payment.loginRequired.forArticle">Subscription or article purchase required to access item. To verify subscription, access previous purchase, or purchase article, log in to journal.</message>
@@ -886,20 +843,19 @@ Active is how many reviews are currently being considered or underway.]]></messa
 	<message key="payment.authorFees">Author Fees</message>
 	<message key="payment.type.submission">Submission Fee</message>
 	<message key="payment.type.publication">Publication Fee</message>
+	<message key="payment.type.publication.required">The publication fee is due for payment.</message>
 	<message key="payment.type.fastTrack">Fast Track Review Fee</message>
 	<message key="payment.type.membership">Individual Membership Fee</message>
 	<message key="payment.type.purchaseArticle">Purchase Article Fee</message>
 	<message key="payment.type.purchaseIssue">Purchase Issue Fee</message>
 	<message key="payment.type.subscription">Subscription Fee</message>
 	<message key="payment.type.donation">Donations</message>
-	<message key="payment.type.gift">Gift</message>
-	<message key="payment.type.gift.subscription">Subscription</message>
+	<message key="payment.requestPublicationFee">Request publication fee ({$feeAmount})</message>
+	<message key="payment.notFound">A payment has been requested, but the request has expired. Contact the Journal Manager for details.</message>
 
 	<message key="payment.donation.makeDonation">Make a donation</message>
 
 	<message key="payment.submission.paySubmission">Pay Submission Fee</message>
-	<message key="payment.fastTrack.payFastTrack">Pay to FastTrack</message>
-	<message key="payment.fastTrack.inFastTrack">in FastTrack</message>
 	<message key="payment.publication.payPublication">Pay to Publish</message>
 	<message key="payment.publication.publicationPaid">Publication Fee Paid</message>
 
@@ -993,7 +949,6 @@ Your server currently supports mbstring: <strong>{$supportsMBString}</strong>]]>
 	<message key="log.review.reviewerUnassigned">{$reviewerName} has been unassigned from reviewing submission {$submissionId} for review round {$round}.</message>
 	<message key="log.review.reviewInitiated">The round {$round} review by {$reviewerName} for submission {$submissionId} has been initiated.</message>
 	<message key="log.review.reviewReinitiated">The round {$round} review by {$reviewerName} for submission {$submissionId} has been reinitiated.</message>
-	<message key="log.review.reviewCancelled">The round {$round} review by {$reviewerName} for submission {$submissionId} has been cancelled.</message>
 	<message key="log.review.reviewCleared">The round {$round} review by {$reviewerName} for submission {$submissionId} has been cleared.</message>
 	<message key="log.review.reviewerRated">{$reviewerName} has been rated for the round {$round} review of submission {$submissionId}.</message>
 	<message key="log.review.reviewDueDateSet">The due date for the round {$round} review of submission {$submissionId} by {$reviewerName} has been set to {$dueDate}.</message>
@@ -1007,6 +962,7 @@ Your server currently supports mbstring: <strong>{$supportsMBString}</strong>]]>
 	<message key="log.review.reviewFileByProxy">The Editor, {$userName}, has uploaded a review file for round {$round} of submission {$submissionId} on behalf of the reviewer, {$reviewerName}.</message>
 	<message key="log.review.reviewerFile">A reviewer file has been uploaded.</message>
 	<message key="log.editor.decision">An editor decision ({$decision}) for article {$submissionId} was recorded by {$editorName}.</message>
+	<message key="log.editor.recommendation">An editor recommendation ({$decision}) for article {$submissionId} was recorded by {$editorName}.</message>
 
 
 	<message key="log.copyedit.initiate">Copyediting on submission {$submissionId} has been commenced by {$copyeditorName}.</message>
@@ -1104,8 +1060,9 @@ Validation may fail on search URLs that require posted form data.]]></message>
 	<message key="notification.type.userComment">A reader has made a comment on "{$title}"</message>
 	<message key="notification.savedIssueMetadata">Issue publication metadata saved.</message>
 	<message key="notification.type.editorAssignmentTask">A new article has been submitted to which an editor needs to be assigned.</message>
-	<message key="notification.type.assignProductionUser">Assign a user to create galleys using the Add link in the Participants list.</message>
+	<message key="notification.type.assignProductionUser">Assign a user to create galleys using the Assign link in the Participants list.</message>
 	<message key="notification.type.awaitingRepresentations">Awaiting Galleys.</message>
+	<message key="notification.type.publicationScheduled">This submission has been scheduled for publication.</message>
 
 	<!--
 	 *
@@ -1148,4 +1105,5 @@ Validation may fail on search URLs that require posted form data.]]></message>
 
 	<message key="editor.issues.backIssues">Back Issues</message>
 	<message key="editor.issues.futureIssues">Future Issues</message>
+	<message key="navigation.subscriptions">Subscriptions</message>
 </locale>

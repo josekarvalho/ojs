@@ -4,8 +4,8 @@
 <!--
   * locale/es_ES/locale.xml
   *
-  * Copyright (c) 2013-2016 Simon Fraser University Library
-  * Copyright (c) 2003-2016 John Willinsky
+  * Copyright (c) 2013-2017 Simon Fraser University
+  * Copyright (c) 2003-2017 John Willinsky
   * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
   * https://pkp.sfu.ca/wiki/index.php?title=OJS:_Spanish_(es_ES)
   * Localization strings.
@@ -39,7 +39,7 @@
 
 
 	<message key="reviewer.article.enterReviewForm">Haga clic en el icono para rellenar el formulario de revisión.</message>
-	<message key="reviewer.article.reviewFormResponse.form.responseRequired">Rellene los campos obligatorios.</message>
+	<message key="reviewer.submission.reviewFormResponse.form.responseRequired">Rellene los campos obligatorios.</message>
 
 	<!-- review forms end -->
 
@@ -206,7 +206,7 @@
 
 	<!-- Roles -->
 	<message key="user.role.manager">Gestor/a de la revista</message>
-	<message key="user.role.sectionEditor">Editor/a de sección</message>
+	<message key="user.role.subEditor">Editor/a de sección</message>
 	<message key="user.role.subscriptionManager">Gestor/a de suscripciones</message>
 	<message key="user.role.managers">Gestores/as de la revista</message>
 	<message key="user.role.subscriptionManagers">Gestores/as de suscripción</message>
@@ -311,10 +311,6 @@
 	<message key="comments.commentsOnArticle">Comentarios sobre este artículo</message>
 	<message key="comments.authenticated"><![CDATA[por <a href="{$publicProfileUrl}" target="_parent">{$userName}</a>]]></message>
 
-	<!-- Site Administration -->
-
-	<message key="admin.settings.oaiRegistrationDescription"><![CDATA[Para indexar el contenido de todas las revistas del sitio web en el sistema global de bases de datos para la investigación, <a href="http://pkp.sfu.ca/harvester/add.php" target="_blank">registre</a> la URL de su sitio web con <a href="http://pkp.sfu.ca/harvester/" target="_blank">la recopilación de los metadatos del Public Knowledge Project </a>. Esta herramienta recopila los metadatos de cada elemento indizado en la revista, permitiendo así una búsqueda precisa y conjunta en aquellos sitios de investigación que están adheridos al <a href="http://www.openarchives.org/OAI/openarchivesprotocol.htm#Introduction" target="_blank"> Protocolo de Open Archives Initiative para la recopilación de metadatos</a>. <br /><br /> <a href="http://pkp.sfu.ca/harvester/add.php" target="_blank">Haga clic aquí</a> e introduzca <span class="highlight">{$siteUrl}</span> en <strong>URL del sitio </strong>, y <span class="highlight">{$oaiUrl}</span> en <strong>URL base para el Archivo OAI</strong>. <br /><br /> Tenga en cuenta que la interfaz OAI se puede deshabilitar de este sitio modificando la configuración del sistema OJS. Versiones futuras de OJS permitirán activar o desactivar la interfaz OAI de forma individual para cada una de las revistas del sitio.]]></message>
-
 	<!-- Languages -->
 
 	<message key="admin.auth.defaultSourceDescription"><![CDATA[<p>Establecer como fuente de autenticación predeterminada otra diferente a OJS conllevará lo siguiente:</p> <ul> <li>Si un usuario/a intenta registrar una cuenta nueva en este sitio utilizando un nombre de usuario ya existente en la fuente de autenticación (pero no en la base de datos OJS), el intento de registro sólo será permitido si la contraseña proporcionada es válida para esa cuenta de usuario.</li> </ul>]]></message>
@@ -341,7 +337,6 @@
 
 	<!-- General plugin information -->
 	<message key="plugins.categories.auth.description">Los módulos de autorización permiten a Open Journal Systems delegar las tareas de autenticación de usuarios/as a otros sistemas, como servidores LDAP.</message>
-	<message key="plugins.categories.citationFormats.description">Los módulos de formato de citas permiten a los usuarios/as emplear distintos formatos para acceder a las citas de los artículos.</message>
 	<message key="plugins.categories.generic.description">Los módulos genéricos se utilizan para ampliar las características del Open Journal Systems de diversas maneras y que son incompatibles con otras categorías de módulos.</message>
 	<message key="plugins.categories.implicitAuth">Módulos de autenticación implícita</message>
 	<message key="plugins.categories.implicitAuth.description">Los módulos de autenticación implícita ponen en funcionamiento un soporte para la autenticación de usuarios/as basado en encabezados http.</message>
@@ -493,7 +488,6 @@
 	<message key="reviewer.article.selectRecommendation">Seleccione una recomendación y envíe la revisión para completar el proceso. Debe introducir la revisión o subir un archivo antes de seleccionar una recomendación.</message>
 	<message key="reviewer.article.mustSelectDecision">No se ha seleccionado ninguna recomendación. Debe seleccionar una recomendación antes de enviar el formulario.</message>
 	<message key="reviewer.article.confirmDecision">Una vez haya registrado su decisión, no podrá hacer cambios en esta revisión. ¿Está seguro/a de que desea continuar?</message>
-	<message key="reviewer.article.ensuringBlindReview">Garantizar una revisión anónima</message>
 
 	<!-- Used in submission editing -->
 	<message key="copyeditor.article.fileToCopyedit">Archivo para el corrector/a de originales</message>
@@ -786,8 +780,6 @@
 	<message key="payment.donation.makeDonation">Hacer una donación</message>
 
 	<message key="payment.submission.paySubmission">Pagar cuota de envío</message>
-	<message key="payment.fastTrack.payFastTrack">Pagar para la revisión rápida</message>
-	<message key="payment.fastTrack.inFastTrack">en revisión rápida</message>
 	<message key="payment.publication.payPublication">Pagar para publicar</message>
 	<message key="payment.publication.publicationPaid">Cuota de publicación pagada</message>
 
@@ -827,7 +819,6 @@
 	<message key="log.review.reviewerUnassigned">Se excluyó a {$reviewerName} de la revisión del envío {$submissionId} en la ronda de revisión {$round}.</message>
 	<message key="log.review.reviewInitiated">{$reviewerName} inició la ronda de revisión {$round} del envío {$submissionId}.</message>
 	<message key="log.review.reviewReinitiated">{$reviewerName} reinició la ronda de revisión {$round} del envío {$submissionId}.</message>
-	<message key="log.review.reviewCancelled">La ronda {$round} que {$reviewerName} revisaba para el envío {$submissionId} se canceló.</message>
 	<message key="log.review.reviewCleared">La ronda {$round} que {$reviewerName} revisa para el envío {$submissionId} se eliminó.</message>
 	<message key="log.review.reviewerRated">{$reviewerName} ha sido clasificado/a para la ronda de revisión {$round} del envío {$submissionId}.</message>
 	<message key="log.review.reviewDueDateSet">La fecha límite para la ronda de revisión {$round} del envío {$submissionId} de {$reviewerName} se estableció para {$dueDate}.</message>
@@ -967,7 +958,6 @@
 	<message key="manager.setup.clockssDescription"><![CDATA[Open Journal Systems también soporta el sistema <a href="http://clockss.org/" target="_blank">CLOCKSS</a> (Controlled Lots of Copies Keep Stuff Safe) para garantizar un archivo permanente y seguro para la revista. CLOCKSS se basa en el software de código abierto LOCKSS desarrollado en la Stanford University Library, que permite a las bibliotecas conservar las revistas web escogidas mediante la comprobación regular de los sitios web de las revistas registradas en busca de contenido publicado recientemente y archivándolo. Cada archivo se valida constantemente contra otras memorias caché de bibliotecas y, si se detecta que el contenido se ha corrompido o perdido, se usan las otras memorias caché o la revista para restaurarlo.
 <br /><br />
 La configuración del soporte CLOCKSS para Open Journal Systems no hace falta que se lleve a cabo hasta que la publicación esté totalmente en marcha.]]></message>
-	<message key="manager.setup.citations.enable">Activar el asistente de marcado de citas</message>
 	<message key="submission.layout.galley.remotelyHostedContent">Esta galerada se abrirá en una página web nueva.</message>
 	<message key="submission.layout.galley.remoteURL">URL del contenido alojado remotamente</message>
 	<message key="reviewer.article.selectRecommendation.byEditor">Configurar o ajustar la recomendación del revisor/a.</message>
@@ -1017,4 +1007,10 @@ La configuración del soporte CLOCKSS para Open Journal Systems no hace falta qu
 
 	<message key="editor.issues.backIssues">Números anteriores</message>
 	<message key="editor.issues.futureIssues">Próximos números</message>
+	<message key="journal.viewAllIssues">Ver todos los números</message>
+	<message key="about.onlineSubmissions.submissionActions">{$newSubmission} o {$viewSubmissions}.</message>
+	<message key="about.onlineSubmissions.newSubmission">Realizar un nuevo envío</message>
+	<message key="about.onlineSubmissions.viewSubmissions">Ver sus envíos pendientes</message>
+	<message key="notification.type.assignProductionUser">Asigne un usuario/a para crear galeradas mediante el enlace Añadir de la lista de participantes.</message>
+	<message key="notification.type.awaitingRepresentations">Esperando galeradas.</message>
 </locale>

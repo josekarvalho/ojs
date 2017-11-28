@@ -3,8 +3,8 @@
 /**
  * @file classes/workflow/EditorDecisionActionsManager.inc.php
  *
- * Copyright (c) 2014-2016 Simon Fraser University Library
- * Copyright (c) 2003-2016 John Willinsky
+ * Copyright (c) 2014-2017 Simon Fraser University
+ * Copyright (c) 2003-2017 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class EditorDecisionActionsManager
@@ -19,10 +19,17 @@ define('SUBMISSION_EDITOR_DECISION_EXTERNAL_REVIEW', 8);
 // Submission and review stages decision actions.
 define('SUBMISSION_EDITOR_DECISION_ACCEPT', 1);
 define('SUBMISSION_EDITOR_DECISION_DECLINE', 4);
+define('SUBMISSION_EDITOR_DECISION_INITIAL_DECLINE', 9);
 
 // Review stage decisions actions.
 define('SUBMISSION_EDITOR_DECISION_PENDING_REVISIONS', 2);
 define('SUBMISSION_EDITOR_DECISION_RESUBMIT', 3);
+
+// Review stage recommendation actions.
+define('SUBMISSION_EDITOR_RECOMMEND_ACCEPT', 11);
+define('SUBMISSION_EDITOR_RECOMMEND_DECLINE', 14);
+define('SUBMISSION_EDITOR_RECOMMEND_PENDING_REVISIONS', 12);
+define('SUBMISSION_EDITOR_RECOMMEND_RESUBMIT', 13);
 
 // Editorial stage decision actions.
 define('SUBMISSION_EDITOR_DECISION_SEND_TO_PRODUCTION', 7);
@@ -34,10 +41,10 @@ class EditorDecisionActionsManager {
 	 * @param $decisions
 	 * @return array
 	 */
-	static function getActionLabels($decisions) {
+	static function getActionLabels($context, $decisions) {
 		$allDecisionsData =
 			self::_submissionStageDecisions() +
-			self::_externalReviewStageDecisions() +
+			self::_externalReviewStageDecisions($context) +
 			self::_editorialStageDecisions();
 
 		$actionLabels = array();
@@ -58,12 +65,12 @@ class EditorDecisionActionsManager {
 	 * @param $decisions array
 	 * @return boolean
 	 */
-	static function getEditorTakenActionInReviewRound($reviewRound, $decisions = array()) {
+	static function getEditorTakenActionInReviewRound($context, $reviewRound, $decisions = array()) {
 		$editDecisionDao = DAORegistry::getDAO('EditDecisionDAO');
 		$editorDecisions = $editDecisionDao->getEditorDecisions($reviewRound->getSubmissionId(), $reviewRound->getStageId(), $reviewRound->getRound());
 
 		if (empty($decisions)) {
-			$decisions = array_keys(self::_externalReviewStageDecisions());
+			$decisions = array_keys(self::_externalReviewStageDecisions($context));
 		}
 		$takenDecision = false;
 		foreach ($editorDecisions as $decision) {
@@ -80,17 +87,34 @@ class EditorDecisionActionsManager {
 	 * Get the available decisions by stage ID.
 	 * @param $stageId int WORKFLOW_STAGE_ID_...
 	 */
-	static function getStageDecisions($stageId) {
+	static function getStageDecisions($context, $stageId) {
 		switch ($stageId) {
 			case WORKFLOW_STAGE_ID_SUBMISSION:
 				return self::_submissionStageDecisions();
 			case WORKFLOW_STAGE_ID_EXTERNAL_REVIEW:
-				return self::_externalReviewStageDecisions();
+				return self::_externalReviewStageDecisions($context);
 			case WORKFLOW_STAGE_ID_EDITING:
 				return self::_editorialStageDecisions();
 			default:
 				assert(false);
 		}
+	}
+
+	/**
+	 * Get an associative array matching editor recommendation codes with locale strings.
+	 * (Includes default '' => "Choose One" string.)
+	 * @param $stageId integer
+	 * @return array recommendation => localeString
+	 */
+	static function getRecommendationOptions($stageId) {
+		static $recommendationOptions = array(
+			'' => 'common.chooseOne',
+			SUBMISSION_EDITOR_RECOMMEND_PENDING_REVISIONS => 'editor.submission.decision.requestRevisions',
+			SUBMISSION_EDITOR_RECOMMEND_RESUBMIT => 'editor.submission.decision.resubmit',
+			SUBMISSION_EDITOR_RECOMMEND_ACCEPT => 'editor.submission.decision.accept',
+			SUBMISSION_EDITOR_RECOMMEND_DECLINE => 'editor.submission.decision.decline',
+		);
+		return $recommendationOptions;
 	}
 
 	//
@@ -106,24 +130,18 @@ class EditorDecisionActionsManager {
 				'operation' => 'externalReview',
 				'name' => 'externalReview',
 				'title' => 'editor.submission.decision.sendExternalReview',
-				'image' => 'advance',
-				'titleIcon' => 'modal_review',
+				'toStage' => 'editor.review',
 			),
 			SUBMISSION_EDITOR_DECISION_ACCEPT => array(
 				'name' => 'accept',
 				'operation' => 'promote',
-				'title' => 'editor.submission.decision.accept',
-				'image' => 'promote',
-				'help' => 'editor.review.NotifyAuthorAccept',
-				'titleIcon' => 'accept_submission',
+				'title' => 'editor.submission.decision.skipReview',
+				'toStage' => 'submission.copyediting',
 			),
-			SUBMISSION_EDITOR_DECISION_DECLINE => array(
+			SUBMISSION_EDITOR_DECISION_INITIAL_DECLINE => array(
 				'name' => 'decline',
 				'operation' => 'sendReviews',
 				'title' => 'editor.submission.decision.decline',
-				'image' => 'decline',
-				'help' => 'editor.review.NotifyAuthorDecline',
-				'titleIcon' => 'decline_submission',
 			),
 		);
 
@@ -132,45 +150,38 @@ class EditorDecisionActionsManager {
 
 	/**
 	 * Define and return editor decisions for the review stage.
+	 * @param $context Context
 	 * @return array
 	 */
-	static function _externalReviewStageDecisions() {
-		static $decisions = array(
+	static function _externalReviewStageDecisions($context) {
+		$paymentManager = Application::getPaymentManager($context);
+		return array(
 			SUBMISSION_EDITOR_DECISION_PENDING_REVISIONS => array(
 				'operation' => 'sendReviewsInReview',
 				'name' => 'requestRevisions',
 				'title' => 'editor.submission.decision.requestRevisions',
-				'image' => 'revisions',
-				'help' => 'editor.review.NotifyAuthorRevisions',
-				'titleIcon' => 'revisions_required',
 			),
 			SUBMISSION_EDITOR_DECISION_RESUBMIT => array(
-				'operation' => 'sendReviewsInReview',
 				'name' => 'resubmit',
 				'title' => 'editor.submission.decision.resubmit',
-				'image' => 'resubmit',
-				'help' => 'editor.review.NotifyAuthorResubmit',
-				'titleIcon' => 'please_resubmit',
 			),
 			SUBMISSION_EDITOR_DECISION_ACCEPT => array(
 				'operation' => 'promoteInReview',
 				'name' => 'accept',
 				'title' => 'editor.submission.decision.accept',
-				'image' => 'promote',
-				'help' => 'editor.review.NotifyAuthorAccept',
-				'titleIcon' => 'accept_submission',
+				'toStage' => 'submission.copyediting',
+				'paymentType' => $paymentManager->publicationEnabled()?PAYMENT_TYPE_PUBLICATION:null,
+				'paymentAmount' => $context->getSetting('publicationFee'),
+				'paymentCurrency' => $context->getSetting('currency'),
+				'requestPaymentText' => __('payment.requestPublicationFee', array('feeAmount' => $context->getSetting('publicationFee') . ' ' . $context->getSetting('currency'))),
+				'waivePaymentText' => __('payment.waive'),
 			),
 			SUBMISSION_EDITOR_DECISION_DECLINE => array(
 				'operation' => 'sendReviewsInReview',
 				'name' => 'decline',
 				'title' => 'editor.submission.decision.decline',
-				'image' => 'decline',
-				'help' => 'editor.review.NotifyAuthorDecline',
-				'titleIcon' => 'decline_submission',
 			),
 		);
-
-		return $decisions;
 	}
 
 	/**
@@ -183,8 +194,7 @@ class EditorDecisionActionsManager {
 				'operation' => 'promote',
 				'name' => 'sendToProduction',
 				'title' => 'editor.submission.decision.sendToProduction',
-				'image' => 'send_production',
-				'titleIcon' => 'modal_send_to_production',
+				'toStage' => 'submission.production',
 			),
 		);
 

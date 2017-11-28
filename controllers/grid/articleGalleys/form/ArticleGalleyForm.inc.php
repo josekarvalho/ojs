@@ -3,8 +3,8 @@
 /**
  * @file controllers/grid/articleGalleys/form/ArticleGalleyForm.inc.php
  *
- * Copyright (c) 2014-2016 Simon Fraser University Library
- * Copyright (c) 2003-2016 John Willinsky
+ * Copyright (c) 2014-2017 Simon Fraser University
+ * Copyright (c) 2003-2017 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class ArticleGalleyForm
@@ -52,7 +52,7 @@ class ArticleGalleyForm extends Form {
 				'$galleyLocale, $availableLocales',
 				'return in_array($galleyLocale, $availableLocales);'
 			),
-			array_keys($journal->getSupportedLocaleNames())
+			array_keys($journal->getSupportedSubmissionLocaleNames())
 		);
 	}
 
@@ -68,7 +68,7 @@ class ArticleGalleyForm extends Form {
 			'articleGalleyFile' => $this->_articleGalley->getFile(),
 		));
 		$templateMgr->assign(array(
-			'supportedLocales' => $journal->getSupportedLocaleNames(),
+			'supportedLocales' => $journal->getSupportedSubmissionLocaleNames(),
 			'submissionId' => $this->_submission->getId(),
 		));
 

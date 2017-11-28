@@ -4,8 +4,8 @@
 <!--
   * locale/de_DE/locale.xml
   *
-  * Copyright (c) 2013-2016 Simon Fraser University Library
-  * Copyright (c) 2003-2016 John Willinsky
+  * Copyright (c) 2013-2017 Simon Fraser University
+  * Copyright (c) 2003-2017 John Willinsky
   * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
   * Localization information: https://pkp.sfu.ca/wiki/index.php?title=OJS:_German_(de_DE)
   * Localization strings.
@@ -36,7 +36,7 @@
 
 
 	<message key="reviewer.article.enterReviewForm">Klicken Sie auf das Symbol, um das Begutachtungsformular auszufüllen.</message>
-	<message key="reviewer.article.reviewFormResponse.form.responseRequired">Bitte füllen Sie die benötigten Felder aus.</message>
+	<message key="reviewer.submission.reviewFormResponse.form.responseRequired">Bitte füllen Sie die benötigten Felder aus.</message>
 
 	<!-- review forms end -->
 
@@ -211,7 +211,7 @@
 
 	<!-- Roles -->
 	<message key="user.role.manager">Zeitschriftenverwalter/in</message>
-	<message key="user.role.sectionEditor">Rubrikredakteur/in</message>
+	<message key="user.role.subEditor">Rubrikredakteur/in</message>
 	<message key="user.role.subscriptionManager">Abonnementverwalter/in</message>
 	<message key="user.role.managers">Zeitschriftenverwalter/innen</message>
 	<message key="user.role.subEditors">Rubrikredakteur/innen</message>
@@ -257,6 +257,7 @@
 	<message key="subscriptions.status.needsApproval">Genehmigung erforderlich</message>
 	<message key="subscriptions.status.awaitingManualPayment">Manuelle Zahlung abwarten</message>
 	<message key="subscriptions.status.awaitingOnlinePayment">Online-Zahlung abwarten</message>
+	<message key="subscriptions.status.noSubscription">Sie haben kein aktives Abonnement.</message>
 	<message key="subscriptions.status.other">Andere, siehe Hinweis</message>
 	<message key="subscriptions.individualDescription">Im Falle individueller Abonnements ist es erforderlich, sich einzuloggen, um auf Inhalte zuzugreifen.</message>
 	<message key="subscriptions.institutionalDescription">Für institutionelle Abonnements ist kein Login erforderlich. Die Domäne und/oder IP-Adresse werden genutzt, um auf Inhalte zuzugreifen.</message>
@@ -317,6 +318,7 @@
 	<message key="reader.openAccess">Freier Zugang (Open Access)</message>
 	<message key="reader.subscriptionAccess">Zugang für Abonnent/innen</message>
 	<message key="reader.subscriptionOrFeeAccess">Zugang für Abonnent/innen oder durch Zahlung einer Gebühr</message>
+	<message key="reader.purchasePrice">({$currency} {$price})</message>
 
 	<!-- Reader Comments -->
 	<message key="comments.commentsOnArticle">Kommentare zu diesem Artikel</message>
@@ -335,13 +337,6 @@
 	<message key="search.results.orderDir.asc">Aufsteigend</message>
 	<message key="search.results.orderDir.desc">Absteigend</message>
 	<message key="search.results.similarDocuments">ähnliche Dokumente</message>
-
-	<!-- Site Administration -->
-	<message key="admin.settings.oaiRegistrationDescription"><![CDATA[Um den Inhalt aller von dieser Website angebotenen Zeitschriften bei einem allgemein verbreiteten System von Forschungsdatenbanken zu indizieren, <a href="http://pkp.sfu.ca/harvester/add.php" target="_blank">registrieren Sie</a> die URL Ihrer Website beim Metadaten-Harvester des Public Knowledge Project <a href="http://pkp.sfu.ca/harvester/" target="_blank"></a>. Der Harvester sammelt die Metadaten jedes indizierten Artikels dieser Zeitschrift und ermöglicht somit eine umfassende und genaue Suche auf allen Forschungs-Webseiten, die sich an dem Projekt <a href="http://www.openarchives.org/OAI/openarchivesprotocol.htm#Introduction" target="_blank"> Open Archives Initiative Protocol for Metadata Harvesting</a> beteiligen.
-<br /><br />
-<a href="http://pkp.sfu.ca/harvester/add.php" target="_blank">Klicken Sie hier</a> und geben Sie <span class="highlight">{$siteUrl}</span> unter <strong>URL</strong> und <span class="highlight">{$oaiUrl}</span> unter <strong>OAI Base URL</strong> ein.
-<br /><br />
-Bitte beachten Sie, dass die OAI-Schnittstelle für diese Website in der OJS-Systemkonfiguration deaktiviert werden kann. Zukünftige Versionen von OJS werden es ermöglichen, die OAI-Schnittstelle für jede Zeitschrift einer Website gesondert zu aktivieren oder zu deaktivieren.]]></message>
 
 	<message key="admin.auth.defaultSourceDescription"><![CDATA[<p>Eine Standardauthentifizierungsquelle außerhalb vom OJS festzulegen, hat folgende Auswirkungen:</p>
 <ul>
@@ -373,7 +368,6 @@ Bitte beachten Sie, dass die OAI-Schnittstelle für diese Website in der OJS-Sys
 	<message key="plugins.categories.viewableFiles">Plugins für Artikelfahnen</message>
 	<message key="plugins.categories.viewableFiles.description">Plugins für Artikelfahnen fügen die Unterstützung für die Anzeige verschiedener Dokumentarten als Artikelfahnen hinzu.</message>
 	<message key="plugins.categories.auth.description">Die Zugangs-Plugins ermöglichen Open Journal Systems, die Zugangsberechtigung von Benutzer/innen an andere Systeme, wie etwa LDAP-Server, zu übertragen.</message>
-	<message key="plugins.categories.citationFormats.description">Plugins für Zitatformate bieten Benutzer/innen unterschiedliche Formate zur Zitation der Artikel an.</message>
 	<message key="plugins.categories.generic.description">Generische Plugins werden zur Erweiterung von Open Journal Systems in einer Vielzahl von Wegen genutzt, die nicht durch die anderen Plugin-Kategorien bereitgestellt werden.</message>
 
 	<message key="manager.setup.lockssDescription"><![CDATA[<strong>Andere LOCKSS-Netzwerke</strong>
@@ -401,7 +395,6 @@ Autor/innen, die in dieser Zeitschrift publizieren möchten, stimmen den folgend
 	<li>Die Autor/innen können zusätzliche Verträge für die nicht-exklusive Verbreitung der in der Zeitschrift veröffentlichten Version ihrer Arbeit unter Nennung der Erstpublikation in dieser Zeitschrift eingehen (z.B. sie in Sammelpublikation oder einem Buch veröffentlichen).</li>
 	<li>Die Autor/innen werden dazu ermutigt, ihre Arbeit parallel zur Einreichung bei dieser Zeitschrift online zu veröffentlichen (z.B. auf den Homepages von Institutionen oder auf ihrer eigenen Homepage), weil so produktive Austauschprozesse wie auch eine frühe und erweiterte Bezugnahme auf das veröffentlichte Werk gefördert werden (siehe <a target="_new" href="http://opcit.eprints.org/oacitation-biblio.html">The Effect of Open Access</a>).</li>
 </ol>]]></message>
-	<message key="manager.setup.citations.enable">Den Zitationsauszeichnungsassistenten aktivieren</message>
 
 	<!-- Setup Step 4 -->
 	<message key="manager.setup.basicEditorialStepsDescription"><![CDATA[Schritte: Liste der eingegangenen Beiträge &gt; Begutachtung der Beiträge &gt; Redaktion der Beiträge &gt; Inhaltsverzeichnis<br /><br />
@@ -581,7 +574,6 @@ Die Bewertung erfolgt auf einer Skala von 1-5 (Ausgezeichnet).<br />
 	<message key="reviewer.article.selectRecommendation.byEditor">Gutachter/in-Empfehlung setzen oder anpassen</message>
 	<message key="reviewer.article.mustSelectDecision">Keine Empfehlung ausgewählt. Sie müssen zur Abgabe des Gutachtens eine Empfehlung auswählen.</message>
 	<message key="reviewer.article.confirmDecision">Sobald Sie eine Empfehlung abgegeben haben, können Sie keine Änderungen mehr an diesem Gutachten vornehmen. Sind Sie sicher, dass Sie fortfahren wollen?</message>
-	<message key="reviewer.article.ensuringBlindReview">Eine anonyme Begutachtung sicherstellen</message>
 
 	<!-- Used in submission editing -->
 	<message key="copyeditor.article.fileToCopyedit">Datei zum Lektorat</message>
@@ -706,8 +698,8 @@ Die Bewertung erfolgt auf einer Skala von 1-5 (Ausgezeichnet).<br />
 	<message key="user.subscriptions.purchaseNewSubscription">Ein neues Abonnement kaufen</message>
 	<message key="user.subscriptions.purchaseIndividualSubscription">Ein individuelles Abonnement kaufen</message>
 	<message key="user.subscriptions.purchaseInstitutionalSubscription">Ein institutionelles Abonnement kaufen</message>
-	<message key="user.subscriptions.expires">Endet</message>
-	<message key="user.subscriptions.expired">Beendet</message>
+	<message key="user.subscriptions.expires">Endet: {$date}</message>
+	<message key="user.subscriptions.expired">Beendet: {$date}</message>
 	<message key="user.subscriptions.viewSubscriptionTypes">Verfügbare Abonnement-Arten ansehen</message>
 	<message key="user.subscriptions.form.typeId">Abonnement-Art</message>
 	<message key="user.subscriptions.form.membership">Mitgliedschaft</message>
@@ -835,41 +827,6 @@ Die Bewertung erfolgt auf einer Skala von 1-5 (Ausgezeichnet).<br />
 	<message key="donations.thankYou">Danke</message>
 	<message key="donations.thankYouMessage">Vielen Dank für Ihre Spende. Wir wissen sie sehr zu schätzen.</message>
 
-	<!-- Gifts -->
-	<message key="gifts.buyer">Von</message>
-	<message key="gifts.buyerDescription">Von wem ist dieses Geschenk?</message>
-	<message key="gifts.recipient">Für</message>
-	<message key="gifts.recipientDescription">Für wen ist dieses Geschenk?</message>
-	<message key="gifts.thankYou">Danke</message>
-	<message key="gifts.thankYouMessage">Sie haben ein Geschenk erworben. Sie werden eine Kopie der Geschenk-E-Mail erhalten, die an den/die Empfänger/in geschickt wird, nachdem Ihre Zahlung verarbeitet worden ist.</message>
-	<message key="gifts.purchaseGiftIndividualSubscription">Geschenk-Abonnement</message>
-	<message key="gifts.subscriptionFormIntroduction">Bitte füllen Sie das unten stehende Formular aus. Die angegebenen Kontaktinformationen werden zusammen mit Ihrer Geschenknachricht benutzt, um den/die Empfänger/in anzuschreiben und ihn/sie über ihr neues Geschenkabonnement zu informieren. (Sie werden auch eine Kopie dieser E-Mail erhalten.)</message>
-	<message key="gifts.details">Geschenk-Details</message>
-	<message key="gifts.detailsDescription">Bitte wählen Sie das Geschenk unten aus und fügen Sie eine persönliche Nachricht hinzu, die an den/die Empfänger/in geschickt werden wird. (Sie werden auch eine Kopie dieser E-Mail erhalten.)</message>
-	<message key="gifts.gift">Geschenk</message>
-	<message key="gifts.noteTitle">Titel</message>
-	<message key="gifts.note">Geschenknachricht</message>
-	<message key="gifts.noteTitleRequired">Bitte geben Sie einen Titel für Ihre persönliche Nachricht an.</message>
-	<message key="gifts.noteRequired">Bitte geben Sie eine persönliche Nachricht an.</message>
-	<message key="gifts.localeRequired">Bitte wählen Sie eine Sprache für Ihre persönliche Nachricht aus.</message>
-	<message key="gifts.myGifts">Meine Geschenke</message>
-	<message key="gifts.manageMyGifts">Meine Geschenke verwalten</message>
-	<message key="gifts.redeemGift">Geschenk einlösen</message>
-	<message key="gifts.status.notRedeemed">Verfügbar</message>
-	<message key="gifts.status.redeemed">Eingelöst</message>
-	<message key="gifts.status.redeemGift">Geschenk einlösen</message>
-	<message key="gifts.subscriptions">Abonnements</message>
-	<message key="gifts.subscriptionsDescription">Ein hier eingelöstes Geschenkabonnement wird Ihr existierendes Abonnement ersetzen (wenn Sie eines haben). Abonnements werden mit dem Datum der Einlösung beginnen und werden für die Dauer des Abonnementtyps gültig sein.</message>
-	<message key="gifts.purchaseGiftSubscription">Ein Geschenkabonnement geben</message>
-	<message key="gifts.giftSubscriptionsAvailable">Es sind auch Geschenkabonnements erhältlich. Geschenkabonnements können zu jeder Zeit durch den/die Empfänger/in eingelöst werden und sind ein guter Weg, diese Zeitschrift zu unterstützen.</message>
-	<message key="gifts.noSubscriptions">Keine Geschenkabonnements</message>
-	<message key="gifts.giftRedeemed">Das Geschenk wurde erfolgreich eingelöst.</message>
-	<message key="gifts.noGiftToRedeem">Dieses Geschenk ist nicht zur Einlösung verfügbar.</message>
-	<message key="gifts.giftAlreadyRedeemed">Dieses Geschenk ist bereits eingelöst worden.</message>
-	<message key="gifts.giftNotValid">Dieses Geschenk ist nicht gültig und kann nicht eingelöst werden.</message>
-	<message key="gifts.subscriptionTypeNotValid">Der Abonnementtyp für dieses Geschenk ist ungültig. Bitte kontaktieren Sie den/die Abonnementverwalter/in.</message>
-	<message key="gifts.subscriptionNonExpiring">Das Geschenk wurde nicht eingelöst, da Sie bereits ein nicht auslaufendes Abonnement für diese Zeitschrift haben.</message>
-
 	<!-- Payments -->
 	<message key="payment.loginRequired">Sie müssen angemeldet sein, um Zahlungen durchführen zu können.</message>
 	<message key="payment.loginRequired.forArticle">Ein Abonnement oder der Erwerb des Artikels sind für den Zugang notwendig. Loggen Sie sich bei der Zeitschrift ein, um Ihr Abonnement zu überprüfen, auf frühere Erwerbungen zuzugreifen oder den Artikel zu erwerben.</message>
@@ -892,14 +849,10 @@ Die Bewertung erfolgt auf einer Skala von 1-5 (Ausgezeichnet).<br />
 	<message key="payment.type.purchaseIssue">Ausgabengebühr</message>
 	<message key="payment.type.subscription">Abonnementgebühr</message>
 	<message key="payment.type.donation">Spenden</message>
-	<message key="payment.type.gift">Geschenk</message>
-	<message key="payment.type.gift.subscription">Abonnement</message>
 
 	<message key="payment.donation.makeDonation">Spenden</message>
 
 	<message key="payment.submission.paySubmission">Einreichungsgebühr zahlen</message>
-	<message key="payment.fastTrack.payFastTrack">Gebühr für beschleunigte Begutachtung zahlen</message>
-	<message key="payment.fastTrack.inFastTrack">in beschleunigter Begutachtung</message>
 	<message key="payment.publication.payPublication">Veröffentlichungsgebühr zahlen</message>
 	<message key="payment.publication.publicationPaid">Veröffentlichungsgebühr bezahlt</message>
 
@@ -993,7 +946,6 @@ Ihr Server unterstützt derzeit : <strong>{$supportsMBString}</strong>]]></messa
 	<message key="log.review.reviewerUnassigned">Der Beitrag {$submissionId} wird nicht länger von {$reviewerName} im Durchgang {$round} begutachtet.</message>
 	<message key="log.review.reviewInitiated">Durchgang {$round} der Begutachtung von Beitrag {$submissionId} durch {$reviewerName} hat begonnen.</message>
 	<message key="log.review.reviewReinitiated">Durchgang {$round} der Begutachtung von Beitrag {$submissionId} durch {$reviewerName} wurde erneut begonnen.</message>
-	<message key="log.review.reviewCancelled">Durchgang {$round} der Begutachtung von Beitrag {$submissionId} durch {$reviewerName} wurde abgebrochen.</message>
 	<message key="log.review.reviewCleared">Die Begutachtung von Beitrag {$submissionId} in Durchgang {$round} durch {$reviewerName} wurde gelöscht.</message>
 	<message key="log.review.reviewerRated">{$reviewerName} wurde beurteilt für Durchgang {$round} der Begutachtung von Beitrag {$submissionId}.</message>
 	<message key="log.review.reviewDueDateSet">Abgabetermin für Durchgang {$round} der Begutachtung von Beitrag {$submissionId} durch {$reviewerName} festgesetzt auf {$dueDate}.</message>
@@ -1007,6 +959,7 @@ Ihr Server unterstützt derzeit : <strong>{$supportsMBString}</strong>]]></messa
 	<message key="log.review.reviewFileByProxy">Redakteur/in {$userName} hat die Begutachtungsdatei von Beitrag {$submissionId} in Durchgang {$round} im Auftrag der Gutachterin/des Gutachters {$reviewerName} hochgeladen.</message>
 	<message key="log.review.reviewerFile">Begutachtungsdatei wurde hochgeladen.</message>
 	<message key="log.editor.decision">Eine Entscheidung ({$decision}) bezüglich Artikel {$submissionId} wurde von Redakteur/in {$editorName} abgegeben.</message>
+	<message key="log.editor.recommendation">Eine redaktionelle Empfehlung ({$decision}) wurde von {$editorName} für den Artikel {$submissionId} eingetragen.</message>
 
 
 	<message key="log.copyedit.initiate">Lektorat von Beitrag {$submissionId} wurde von {$copyeditorName} begonnen.</message>
@@ -1104,8 +1057,9 @@ Die Prüfung kann bei Such-URLs, die Formularausfüllung verlangen, fehlschlagen
 	<message key="notification.type.userComment">Ein/e Leser/in hat "{$title}" kommentiert.</message>
 	<message key="notification.savedIssueMetadata">Ausgabenmetadaten gespeichert.</message>
 	<message key="notification.type.editorAssignmentTask">Ein neuer Artikel wurde eingereicht, dem ein/e Redakteur/in zugewiesen werden muss.</message>
-
-
+	<message key="notification.type.assignProductionUser">Nutzen Sie den Hinzufügen-Link in der Teilnehmer/innen-Liste, um eine/n Nutzer/in zum Erzeugen von Fahnen einzutragen.</message>
+	<message key="notification.type.awaitingRepresentations">Warte auf Fahnen.</message>
+	<message key="notification.type.publicationScheduled">Dieser Beitrag wurde zur Publikation vorgesehen.</message>
 
 	<!--
 	 *
@@ -1148,4 +1102,8 @@ Die Prüfung kann bei Such-URLs, die Formularausfüllung verlangen, fehlschlagen
 
 	<message key="editor.issues.backIssues">Frühere Ausgaben</message>
 	<message key="editor.issues.futureIssues">Zukünftige Ausgaben</message>
+	<message key="navigation.subscriptions">Abonnements</message>
+	<message key="payment.type.publication.required">Die Veröffentlichungsgebühr ist fällig.</message>
+	<message key="payment.requestPublicationFee">Fordere Veröffentlichungsgebühr ({$feeAmount}) an</message>
+	<message key="payment.notFound">Eine Zahlung wurde angefordert, aber die Anforderung ist abgelaufen. Kontaktieren Sie den Zeitschriftenverwalter/die Zeitschriftenverwalterin  für Einzelheiten.</message>
 </locale>

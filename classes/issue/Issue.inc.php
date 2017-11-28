@@ -8,8 +8,8 @@
 /**
  * @file classes/issue/Issue.inc.php
  *
- * Copyright (c) 2014-2016 Simon Fraser University Library
- * Copyright (c) 2003-2016 John Willinsky
+ * Copyright (c) 2014-2017 Simon Fraser University
+ * Copyright (c) 2003-2017 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class Issue
@@ -407,29 +407,36 @@ class Issue extends DataObject {
 	}
 
 	/**
+	 * Get the full URL to all localized cover images
+	 *
+	 * @return array
+	 */
+	function getCoverImageUrls() {
+		$coverImages = $this->getCoverImage(null);
+		if (empty($coverImages)) {
+			return array();
+		}
+
+		$request = Application::getRequest();
+		import('classes.file.PublicFileManager');
+		$publicFileManager = new PublicFileManager();
+
+		$urls = array();
+
+		foreach ($coverImages as $locale => $coverImage) {
+			$urls[$locale] = sprintf('%s/%s/%s', $request->getBaseUrl(), $publicFileManager->getJournalFilesPath($this->getJournalId()), $coverImage);
+		}
+
+		return $urls;
+	}
+
+	/**
 	 * Set issue cover image alternate text
 	 * @param $coverImageAltText string
 	 * @param $locale string
 	 */
 	function setCoverImageAltText($coverImageAltText, $locale) {
 		return $this->setData('coverImageAltText', $coverImageAltText, $locale);
-	}
-
-	/**
-	 * Return string of author names, separated by the specified token
-	 * @param $lastOnly boolean return list of lastnames only (default false)
-	 * @param $separator string separator for names (default comma+space)
-	 * @return string
-	 */
-	function getAuthorString($lastOnly = false, $separator = ', ') {
-		$str = '';
-		foreach ($this->getAuthors() as $a) {
-			if (!empty($str)) {
-				$str .= $separator;
-			}
-			$str .= $lastOnly ? $a->getLastName() : $a->getFullName();
-		}
-		return $str;
 	}
 
 	/**
@@ -503,7 +510,10 @@ class Issue extends DataObject {
 	 * @return string
 	 */
 	function getIssueSeries() {
-		return $this->getIssueIdentification(array('showTitle' => false));
+		if ($this->getShowVolume() || $this->getShowNumber() || $this->getShowYear()) {
+			return $this->getIssueIdentification(array('showTitle' => false));
+		}
+		return null;
 	}
 
 	/**

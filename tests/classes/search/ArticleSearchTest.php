@@ -3,8 +3,8 @@
 /**
  * @file tests/classes/search/ArticleSearchTest.php
  *
- * Copyright (c) 2014-2016 Simon Fraser University Library
- * Copyright (c) 2000-2016 John Willinsky
+ * Copyright (c) 2014-2017 Simon Fraser University
+ * Copyright (c) 2000-2017 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class ArticleSearchTest
@@ -273,14 +273,14 @@ class ArticleSearchTest extends PKPTestCase {
 	 */
 	private function registerMockPublishedArticleDAO() {
 		// Mock a PublishedArticleDAO.
-		$publishedArticleDAO = $this->getMock('PublishedArticleDAO', array('getPublishedArticleByArticleId'), array(), '', false);
+		$publishedArticleDAO = $this->getMock('PublishedArticleDAO', array('getByArticleId'), array(), '', false);
 
 		// Mock a published article.
 		$publishedArticle = new PublishedArticle();
 
-		// Mock the getPublishedArticleByArticleId() method.
+		// Mock the getByArticleId() method.
 		$publishedArticleDAO->expects($this->any())
-		                    ->method('getPublishedArticleByArticleId')
+		                    ->method('getByArticleId')
 		                    ->will($this->returnValue($publishedArticle));
 
 		// Register the mock DAO.

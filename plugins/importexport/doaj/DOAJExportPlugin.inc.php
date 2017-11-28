@@ -3,8 +3,8 @@
 /**
  * @file plugins/importexport/doaj/DOAJExportPlugin.inc.php
  *
- * Copyright (c) 2014-2016 Simon Fraser University Library
- * Copyright (c) 2003-2016 John Willinsky
+ * Copyright (c) 2014-2017 Simon Fraser University
+ * Copyright (c) 2003-2017 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class DOAJExportPlugin
@@ -15,15 +15,15 @@
 
 import('classes.plugins.PubObjectsExportPlugin');
 
-define('DOAJ_XSD_URL', 'http://www.doaj.org/schemas/doajArticles.xsd');
+define('DOAJ_XSD_URL', 'https://www.doaj.org/schemas/doajArticles.xsd');
+
+define('DOAJ_API_DEPOSIT_OK', 201);
+
+define('DOAJ_API_URL', 'https://doaj.org/api/v1/');
+define('DOAJ_API_URL_DEV', 'https://testdoaj.cottagelabs.com/api/v1/');
+define('DOAJ_API_OPERATION', 'articles');
 
 class DOAJExportPlugin extends PubObjectsExportPlugin {
-	/**
-	 * Constructor
-	 */
-	function __construct() {
-		parent::__construct();
-	}
 
 	/**
 	 * @copydoc Plugin::getName()
@@ -60,14 +60,6 @@ class DOAJExportPlugin extends PubObjectsExportPlugin {
 		}
 	}
 
-	function getStatusNames() {
-		return array(
-			EXPORT_STATUS_ANY => __('plugins.importexport.common.status.any'),
-			EXPORT_STATUS_NOT_DEPOSITED => __('plugins.importexport.common.status.notDeposited'),
-			EXPORT_STATUS_MARKEDREGISTERED => __('plugins.importexport.common.status.markedRegistered'),
-		);
-	}
-
 	/**
 	 * @copydoc ImportExportPlugin::getPluginSettingsPrefix()
 	 */
@@ -83,11 +75,149 @@ class DOAJExportPlugin extends PubObjectsExportPlugin {
 	}
 
 	/**
+	 * @copydoc PubObjectsExportPlugin::getExportActions()
+	 */
+	function getExportActions($context) {
+		$actions = array(EXPORT_ACTION_EXPORT, EXPORT_ACTION_MARKREGISTERED );
+		if ($this->getSetting($context->getId(), 'apiKey')) {
+			array_unshift($actions, EXPORT_ACTION_DEPOSIT);
+		}
+		return $actions;
+	}
+
+	/**
 	 * @copydoc PubObjectsExportPlugin::getExportDeploymentClassName()
 	 */
 	function getExportDeploymentClassName() {
 		return 'DOAJExportDeployment';
 	}
+
+	/**
+	 * @copydoc PubObjectsExportPlugin::getSettingsFormClassName()
+	 */
+	function getSettingsFormClassName() {
+		return 'DOAJSettingsForm';
+	}
+
+	/**
+	 * @see PubObjectsExportPlugin::depositXML()
+	 * @param $objects PublishedArticle
+	 * @param $context Context
+	 * @param $jsonString string Export JSON string
+	 * @return boolean Whether the JSON string has been registered
+	 */
+	function depositXML($objects, $context, $jsonString) {
+
+		$curlCh = curl_init();
+		if ($httpProxyHost = Config::getVar('proxy', 'http_host')) {
+			curl_setopt($curlCh, CURLOPT_PROXY, $httpProxyHost);
+			curl_setopt($curlCh, CURLOPT_PROXYPORT, Config::getVar('proxy', 'http_port', '80'));
+			if ($username = Config::getVar('proxy', 'username')) {
+				curl_setopt($curlCh, CURLOPT_PROXYUSERPWD, $username . ':' . Config::getVar('proxy', 'password'));
+			}
+		}
+
+		curl_setopt($curlCh, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($curlCh, CURLOPT_POST, true);
+		curl_setopt($curlCh, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
+
+		curl_setopt($curlCh, CURLOPT_POSTFIELDS, $jsonString);
+
+		$endpoint = ($this->isTestMode($context) ? DOAJ_API_URL_DEV : DOAJ_API_URL);
+		$apiKey = $this->getSetting($context->getId(), 'apiKey');
+		$params = 'api_key=' . $apiKey;
+
+		curl_setopt(
+			$curlCh,
+			CURLOPT_URL,
+			$endpoint . DOAJ_API_OPERATION . (strpos($endpoint,'?')===false?'?':'&') . $params
+		);
+
+		$response = curl_exec($curlCh);
+
+		if ($response === false) {
+			$result = array(array('plugins.importexport.doaj.register.error.mdsError', 'No response from server.'));
+		} elseif ( $status = curl_getinfo($curlCh, CURLINFO_HTTP_CODE) != DOAJ_API_DEPOSIT_OK ) {
+			$result = array(array('plugins.importexport.doaj.register.error.mdsError', "$status - $response"));
+		} else {
+			// Deposit was received
+			$result = true;
+			// set the status
+			$objects->setData($this->getDepositStatusSettingName(), EXPORT_STATUS_REGISTERED);
+			// Update the object
+			$this->updateObject($objects);
+		}
+		curl_close($curlCh);
+		return $result;
+
+	}
+
+	/**
+	 * @copydoc PubObjectsExportPlugin::executeExportAction()
+	 */
+	function executeExportAction($request, $objects, $filter, $tab, $objectsFileNamePart, $noValidation = null) {
+		$context = $request->getContext();
+		$path = array('plugin', $this->getName());
+		if ($request->getUserVar(EXPORT_ACTION_DEPOSIT)) {
+			assert($filter != null);
+			// Set filter for JSON
+			$filter = 'article=>doaj-json';
+			$resultErrors = array();
+			foreach ($objects as $object) {
+				// Get the JSON
+				$exportJson = $this->exportJSON($object, $filter, $context);
+				// Deposit the JSON
+				$result = $this->depositXML($object, $context, $exportJson);
+				if (is_array($result)) {
+					$resultErrors[] = $result;
+				}
+			}
+			// send notifications
+			if (empty($resultErrors)) {
+				$this->_sendNotification(
+					$request->getUser(),
+					$this->getDepositSuccessNotificationMessageKey(),
+					NOTIFICATION_TYPE_SUCCESS
+				);
+			} else {
+				foreach($resultErrors as $errors) {
+					foreach ($errors as $error) {
+						assert(is_array($error) && count($error) >= 1);
+						$this->_sendNotification(
+							$request->getUser(),
+							$error[0],
+							NOTIFICATION_TYPE_ERROR,
+							(isset($error[1]) ? $error[1] : null)
+						);
+					}
+				}
+			}
+			// redirect back to the right tab
+			$request->redirect(null, null, null, $path, null, $tab);
+		} else {
+			return parent::executeExportAction($request, $objects, $filter, $tab, $objectsFileNamePart, $noValidation);
+		}
+	}
+
+	/**
+	 * Get the JSON for selected objects.
+	 * @param $object PublishedArticle
+	 * @param $filter string
+	 * @param $context Context
+	 * @return string JSON variable.
+	 */
+	function exportJSON($object, $filter, $context) {
+		$json = '';
+		$filterDao = DAORegistry::getDAO('FilterDAO');
+		$exportFilters = $filterDao->getObjectsByGroup($filter);
+		assert(count($exportFilters) == 1); // Assert only a single serialization filter
+		$exportFilter = array_shift($exportFilters);
+		$exportDeployment = $this->_instantiateExportDeployment($context);
+		$exportFilter->setDeployment($exportDeployment);
+		$json = $exportFilter->execute($object, true);
+		return $json;
+	}
+
 
 }
 

@@ -7,8 +7,8 @@
 /**
  * @file plugins/oaiMetadataFormats/dc/tests/OAIMetadataFormat_DCTest.php
  *
- * Copyright (c) 2014-2016 Simon Fraser University Library
- * Copyright (c) 2000-2016 John Willinsky
+ * Copyright (c) 2014-2017 Simon Fraser University
+ * Copyright (c) 2000-2017 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class OAIMetadataFormat_DCTest
@@ -183,9 +183,9 @@ class OAIMetadataFormat_DCTest extends PKPTestCase {
 
 		// Create a mocked PublishedArticleDAO that returns our test article.
 		import('classes.article.PublishedArticleDAO');
-		$articleDao = $this->getMock('PublishedArticleDAO', array('getPublishedArticleByArticleId'));
+		$articleDao = $this->getMock('PublishedArticleDAO', array('getByArticleId'));
 		$articleDao->expects($this->any())
-		            ->method('getPublishedArticleByArticleId')
+		            ->method('getByArticleId')
 		            ->will($this->returnValue($article));
 		DAORegistry::registerDAO('PublishedArticleDAO', $articleDao);
 

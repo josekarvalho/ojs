@@ -3,8 +3,8 @@
 /**
  * @file plugins/generic/lucene/classes/SolrWebService.inc.php
  *
- * Copyright (c) 2014-2016 Simon Fraser University Library
- * Copyright (c) 2003-2016 John Willinsky
+ * Copyright (c) 2014-2017 Simon Fraser University
+ * Copyright (c) 2003-2017 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class SolrWebService
@@ -1289,7 +1289,7 @@ class SolrWebService extends XmlWebService {
 		foreach($articles as $article) {
 			if (!is_a($article, 'PublishedArticle')) {
 				// Try to upgrade the article to a published article.
-				$publishedArticle =& $publishedArticleDao->getPublishedArticleByArticleId($article->getId());
+				$publishedArticle =& $publishedArticleDao->getByArticleId($article->getId());
 				if (is_a($publishedArticle, 'PublishedArticle')) {
 					unset($article);
 					$article =& $publishedArticle;
@@ -1968,7 +1968,7 @@ class SolrWebService extends XmlWebService {
 		$issueAction = new IssueAction();
 		$subscriptionRequired = $issueAction->subscriptionRequired($issue, $journal);
 		if ($subscriptionRequired) {
-			$isSubscribedDomain = $issueAction->subscribedDomain($journal, $issue->getId(), $article->getId());
+			$isSubscribedDomain = $issueAction->subscribedDomain(Application::getRequest(), $journal, $issue->getId(), $article->getId());
 			if (!$isSubscribedDomain) return false;
 		}
 

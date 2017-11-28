@@ -3,8 +3,8 @@
 /**
  * @file classes/article/ArticleGalleyDAO.inc.php
  *
- * Copyright (c) 2014-2016 Simon Fraser University Library
- * Copyright (c) 2003-2016 John Willinsky
+ * Copyright (c) 2014-2017 Simon Fraser University
+ * Copyright (c) 2003-2017 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class ArticleGalleyDAO
@@ -19,12 +19,6 @@ import('lib.pkp.classes.submission.RepresentationDAO');
 import('lib.pkp.classes.plugins.PKPPubIdPluginDAO');
 
 class ArticleGalleyDAO extends RepresentationDAO implements PKPPubIdPluginDAO {
-	/**
-	 * Constructor.
-	 */
-	function __construct() {
-		parent::__construct();
-	}
 
 	/**
 	 * Return a new data object.
@@ -488,10 +482,11 @@ class ArticleGalleyDAO extends RepresentationDAO implements PKPPubIdPluginDAO {
 			$params[] = $pubIdSettingValue;
 		}
 
+		import('classes.article.Article'); // STATUS_DECLINED constant
 		$result = $this->retrieveRange(
 				'SELECT	sf.*, g.*
 			FROM	submission_galleys g
-				JOIN submissions s ON (s.submission_id = g.submission_id)
+				JOIN submissions s ON (s.submission_id = g.submission_id AND s.status <> ' . STATUS_DECLINED .')
 				LEFT JOIN published_submissions ps ON (ps.submission_id = g.submission_id)
 				JOIN issues i ON (ps.issue_id = i.issue_id)
 				LEFT JOIN submission_files sf ON (g.file_id = sf.file_id)
@@ -510,8 +505,8 @@ class ArticleGalleyDAO extends RepresentationDAO implements PKPPubIdPluginDAO {
 				. (($pubIdSettingName != null && $pubIdSettingValue != null && $pubIdSettingValue != EXPORT_STATUS_NOT_DEPOSITED)?' AND gss.setting_value = ?':'')
 				. (($pubIdSettingName != null && is_null($pubIdSettingValue))?' AND (gss.setting_value IS NULL OR gss.setting_value = \'\')':'') .'
 				ORDER BY ps.date_published DESC, s.submission_id DESC, g.galley_id DESC',
-				$params,
-				$rangeInfo
+			$params,
+			$rangeInfo
 		);
 
 		return new DAOResultFactory($result, $this, '_fromRow');

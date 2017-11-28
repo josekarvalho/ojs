@@ -4,8 +4,8 @@
 <!--
   * plugins/pubIds/doi/locale/it_IT/locale.xml
   *
-  * Copyright (c) 2014-2016 Simon Fraser University Library
-  * Copyright (c) 2003-2016 John Willinsky
+  * Copyright (c) 2014-2017 Simon Fraser University
+  * Copyright (c) 2003-2017 John Willinsky
   * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
   *
   * DOI plugin localization strings for the it_IT locale.
@@ -13,6 +13,7 @@
  
 <locale name="it_IT" full_name="Italiano">
 	<message key="plugins.pubIds.doi.displayName">DOI</message>
+	<message key="plugins.pubIds.doi.readerDisplayName">DOI</message>
 
 	<!-- settings form -->
 	<message key="plugins.pubIds.doi.manager.settings.description">Seguire il setup per essere in grado di gestire e utilizzare DOI in OJS:</message>
@@ -51,4 +52,5 @@
 	<message key="plugins.pubIds.doi.editor.doiObjectTypeSubmission">articolo</message>
 	<message key="plugins.pubIds.doi.editor.doiObjectTypeGalley">file principale</message>
 	<message key="plugins.pubIds.doi.editor.doiSuffixCustomIdentifierNotUnique">Il suffisso DOI inserito è già in uso per un altro oggetto pubblicato. Inserisci un DOI unico per ciascun oggetto.</message>
+	<message key="plugins.pubIds.doi.editor.patternNotResolved">Il DOI non può essere assegnato perché contiene un indirizzo non valido</message>
 </locale>

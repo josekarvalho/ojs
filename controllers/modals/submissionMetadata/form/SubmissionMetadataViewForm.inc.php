@@ -3,8 +3,8 @@
 /**
  * @file controllers/modals/submissionMetadata/form/SubmissionMetadataViewForm.inc.php
  *
- * Copyright (c) 2014-2016 Simon Fraser University Library
- * Copyright (c) 2003-2016 John Willinsky
+ * Copyright (c) 2014-2017 Simon Fraser University
+ * Copyright (c) 2003-2017 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class SubmissionMetadataViewForm
@@ -136,7 +136,7 @@ class SubmissionMetadataViewForm extends PKPSubmissionMetadataViewForm {
 		if ($reorder) {
 			// see if it is a published article
 			$publishedArticleDao = DAORegistry::getDAO('PublishedArticleDAO');
-			$publishedArticle = $publishedArticleDao->getPublishedArticleByArticleId($submission->getId(), null, false); /* @var $publishedArticle PublishedArticle */
+			$publishedArticle = $publishedArticleDao->getByArticleId($submission->getId(), null, false); /* @var $publishedArticle PublishedArticle */
 			if ($publishedArticle) {
 				// Resequence the articles.
 				$publishedArticle->setSequence(REALLY_BIG_NUMBER);

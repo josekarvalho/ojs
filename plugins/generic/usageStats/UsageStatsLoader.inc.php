@@ -3,8 +3,8 @@
 /**
  * @file plugins/generic/usageStats/UsageStatsLoader.inc.php
  *
- * Copyright (c) 2013-2016 Simon Fraser University Library
- * Copyright (c) 2003-2016 John Willinsky
+ * Copyright (c) 2013-2017 Simon Fraser University
+ * Copyright (c) 2003-2017 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class UsageStatsLoader
@@ -73,7 +73,14 @@ class UsageStatsLoader extends PKPUsageStatsLoader {
 						$assocId = $articleFile->getFileId();
 					}
 
-					$assocTypeToReturn = $assocType;
+					// is the file article full text
+					$genreDao = DAORegistry::getDAO('GenreDAO');
+					$genre = $genreDao->getById($articleFile->getGenreId());
+					if ($genre->getCategory() != 1 || $genre->getSupplementary() || $genre->getDependent()) {
+						$assocTypeToReturn = ASSOC_TYPE_SUBMISSION_FILE_COUNTER_OTHER;
+					} else {
+						$assocTypeToReturn = $assocType;
+					}
 					break;
 				case ASSOC_TYPE_ISSUE:
 				case ASSOC_TYPE_ISSUE_GALLEY:

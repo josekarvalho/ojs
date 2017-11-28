@@ -1,8 +1,8 @@
 {**
  * plugins/generic/htmlArticleGalley/display.tpl
  *
- * Copyright (c) 2014-2016 Simon Fraser University Library
- * Copyright (c) 2003-2016 John Willinsky
+ * Copyright (c) 2014-2017 Simon Fraser University
+ * Copyright (c) 2003-2017 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * Embedded viewing of a HTML galley.
@@ -22,12 +22,12 @@
 			</span>
 		</a>
 
-		<a href="{url page="article" op="view" path=$article->getBestArticleId()|to_array:$galley->getBestGalleyId()}" class="title">
+		<a href="{url page="article" op="view" path=$article->getBestArticleId()}" class="title">
 			{$article->getLocalizedTitle()|escape}
 		</a>
 	</header>
 
-	<div id="htmlContainer">
+	<div id="htmlContainer" class="galley_view">
 		<iframe name="htmlFrame" src="{url page="article" op="download" path=$article->getBestArticleId()|to_array:$galley->getBestGalleyId() inline=true}" allowfullscreen webkitallowfullscreen></iframe>
 	</div>
 	{call_hook name="Templates::Common::Footer::PageFooter"}

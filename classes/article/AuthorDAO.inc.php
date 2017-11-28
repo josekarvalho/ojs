@@ -3,8 +3,8 @@
 /**
  * @file classes/article/AuthorDAO.inc.php
  *
- * Copyright (c) 2014-2016 Simon Fraser University Library
- * Copyright (c) 2003-2016 John Willinsky
+ * Copyright (c) 2014-2017 Simon Fraser University
+ * Copyright (c) 2003-2017 John Willinsky
  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
  *
  * @class AuthorDAO
@@ -19,12 +19,6 @@ import('classes.article.Article');
 import('lib.pkp.classes.submission.PKPAuthorDAO');
 
 class AuthorDAO extends PKPAuthorDAO {
-	/**
-	 * Constructor
-	 */
-	function __construct() {
-		parent::__construct();
-	}
 
 	/**
 	 * Retrieve all published submissions associated with authors with
@@ -64,7 +58,7 @@ class AuthorDAO extends PKPAuthorDAO {
 
 		while (!$result->EOF) {
 			$row = $result->getRowAssoc(false);
-			$publishedArticle = $publishedArticleDao->getPublishedArticleByArticleId($row['submission_id']);
+			$publishedArticle = $publishedArticleDao->getByArticleId($row['submission_id']);
 			if ($publishedArticle) {
 				$publishedArticles[] = $publishedArticle;
 			}
